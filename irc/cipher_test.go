@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Cipher", func() {
-	var cipher *irc.Cipher
+var _ = Describe("MessageCipher", func() {
+	var cipher *irc.MessageCipher
 
 	Describe("#Decode", func() {
 		It("parses IRC messages into component parts", func() {

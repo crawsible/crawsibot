@@ -9,7 +9,7 @@ import (
 // see https://tools.ietf.org/html/rfc1459#section-2.3
 // Exceptions have been afforded for Twitch compatibility
 
-type Cipher struct{}
+type MessageCipher struct{}
 
 var msgRE *regexp.Regexp = regexp.MustCompile(
 	`\A` +
@@ -20,7 +20,7 @@ var msgRE *regexp.Regexp = regexp.MustCompile(
 		`\r\n\z`,
 )
 
-func (c *Cipher) Decode(msgStr string) (*Message, error) {
+func (c *MessageCipher) Decode(msgStr string) (*Message, error) {
 	match := msgRE.FindStringSubmatch(msgStr)
 	if len(match) == 0 {
 		errMsg := fmt.Sprintf(
@@ -40,7 +40,7 @@ func (c *Cipher) Decode(msgStr string) (*Message, error) {
 	}, nil
 }
 
-func (c *Cipher) Encode(msg *Message) string {
+func (c *MessageCipher) Encode(msg *Message) string {
 	params := ""
 	if msg.Params != "" {
 		params = fmt.Sprintf(" :%s", msg.Params)
