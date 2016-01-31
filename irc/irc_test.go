@@ -12,28 +12,44 @@ import (
 var _ = Describe("IRC", func() {
 	var (
 		fakeDialer *mocks.FakeDialer
-		ircClient  *irc.IRC
-		cfg        *config.Config
+		fakeConn   *mocks.FakeConn
+
+		ircClient *irc.IRC
+		cfg       *config.Config
 	)
 
 	BeforeEach(func() {
 		fakeDialer = &mocks.FakeDialer{}
+		fakeConn = &mocks.FakeConn{}
+
+		fakeDialer.DialReturnConn = fakeConn
 
 		ircClient = &irc.IRC{
 			Dialer: fakeDialer,
 		}
 		cfg = &config.Config{
-			Address: "some.address:12345",
+			Address:  "some.address:12345",
+			Nick:     "some-nick",
+			Password: "oauth:key",
 		}
 	})
 
 	Describe("#Connect", func() {
-		It("should dial the given address over tcp", func() {
+		BeforeEach(func() {
 			ircClient.Connect(cfg)
-			Expect(fakeDialer.DialCalls).To(Equal(1))
+		})
 
+		It("should dial the given address over tcp", func() {
+			Expect(fakeDialer.DialCalls).To(Equal(1))
 			Expect(fakeDialer.DialNetwork).To(Equal("tcp"))
 			Expect(fakeDialer.DialAddress).To(Equal("some.address:12345"))
+		})
+
+		It("should validate against the server", func() {
+			Expect(fakeConn.WriteCalls).To(Equal(1))
+
+			authMsg := []byte("PASS oauth:key\r\nNICK some-nick\r\n")
+			Expect(fakeConn.WriteMessage).To(Equal(authMsg))
 		})
 	})
 })

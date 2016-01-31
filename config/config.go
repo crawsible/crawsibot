@@ -1,5 +1,7 @@
 package config
 
 type Config struct {
-	Address string
+	Address  string
+	Nick     string
+	Password string
 }

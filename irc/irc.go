@@ -1,6 +1,7 @@
 package irc
 
 import (
+	"fmt"
 	"net"
 
 	"github.com/crawsible/crawsibot/config"
@@ -21,5 +22,8 @@ func New() *IRC {
 }
 
 func (i *IRC) Connect(cfg *config.Config) {
-	i.Dialer.Dial("tcp", cfg.Address)
+	conn, _ := i.Dialer.Dial("tcp", cfg.Address)
+	defer conn.Close()
+
+	fmt.Fprintf(conn, "PASS %s\r\nNICK %s\r\n", cfg.Password, cfg.Nick)
 }
