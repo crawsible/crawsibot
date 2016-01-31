@@ -1,19 +1,12 @@
 package main
 
-import (
-	"fmt"
-	"net"
-	"os"
-)
+import "flag"
+
+//flag.StringVar(&address, "a", "", "The IRC server address (<hostname>:<port>)")
+//flag.StringVar(&nick, "n", "", "Your IRC nickname")
+//flag.StringVar(&password, "p", "", "Your IRC password")
+//flag.StringVar(&channel, "c", "", "The channel you're connecting to (omit '#')")
 
 func main() {
-	conn, err := net.Dial("tcp", "localhost:3000")
-	if err != nil {
-		fmt.Printf("Danger, Will Robinson! %s", err.Error)
-		os.Exit(1)
-	}
-	defer conn.Close()
-
-	fmt.Fprintf(conn, "PASS some-password\r\nNICK some-username\r\n")
-	fmt.Fprintf(conn, "JOIN #crawsible\r\n")
+	flag.Parse()
 }
