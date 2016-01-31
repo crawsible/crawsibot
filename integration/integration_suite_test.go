@@ -13,40 +13,25 @@ import (
 
 var reqCh chan string
 var resCh chan string
-var quitCh chan struct{}
 
 func TestIntegration(t *testing.T) {
 	reqCh = make(chan string)
 	resCh = make(chan string)
-	quitCh = make(chan struct{})
 
 	RegisterFailHandler(Fail)
-	go mockIRCServer(reqCh, resCh, quitCh)
+	go mockIRCServer(reqCh, resCh)
 
 	RunSpecs(t, "Integration Suite")
-	fmt.Println("TESTS COMPLETE")
-	quitCh <- struct{}{}
 }
 
-func mockIRCServer(reqCh, resCh chan string, quitCh chan struct{}) {
+func mockIRCServer(reqCh, resCh chan string) {
 	ln, err := net.Listen("tcp", "localhost:3000")
 	if err != nil {
 		panic(err.Error())
 	}
 	defer ln.Close()
 
-	for {
-		select {
-		case <-quitCh:
-			close(reqCh)
-			close(resCh)
-			close(quitCh)
-
-			return
-		default:
-			serverCycle(ln, reqCh, resCh)
-		}
-	}
+	serverCycle(ln, reqCh, resCh)
 }
 
 func serverCycle(ln net.Listener, reqCh, resCh chan string) {
@@ -54,22 +39,22 @@ func serverCycle(ln net.Listener, reqCh, resCh chan string) {
 	if err != nil {
 		return
 	}
+	defer conn.Close()
 
 	reader := bufio.NewReader(conn)
-	go func(reqCh, resCh chan string) {
-		defer conn.Close()
-		var (
-			line string
-			err  error
-		)
+	var line string
 
-		for {
-			line, err = reader.ReadString('\n')
-			if err != nil {
-				panic(err.Error())
-			}
-
-			reqCh <- line
+	for {
+		line, err = reader.ReadString('\n')
+		if err != nil {
+			fmt.Println(err.Error())
+			return
 		}
-	}(reqCh, resCh)
+		if line == "EOF\r\n" {
+			fmt.Println("signing off!")
+			return
+		}
+
+		reqCh <- line
+	}
 }

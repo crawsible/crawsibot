@@ -31,9 +31,9 @@ var _ = Describe("Integration", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	FIt("validates with the server", func() {
-		Expect(<-reqCh).To(Equal("PASS some-password\r\n"))
-		Expect(<-reqCh).To(Equal("NICK some-username\r\n"))
+	It("validates with the server", func() {
+		Eventually(reqCh).Should(Receive(Equal("PASS some-password\r\n")))
+		Eventually(reqCh).Should(Receive(Equal("NICK some-username\r\n")))
 	})
 
 	AfterSuite(func() {
