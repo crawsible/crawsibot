@@ -40,6 +40,15 @@ func (c *Cipher) Decode(msgStr string) (*Message, error) {
 	}, nil
 }
 
+func (c *Cipher) Encode(msg *Message) string {
+	params := ""
+	if msg.Params != "" {
+		params = fmt.Sprintf(" :%s", msg.Params)
+	}
+
+	return fmt.Sprintf("%s %s%s\r\n", msg.Command, msg.FirstParams, params)
+}
+
 func getNamedMatch(match []string) map[string]string {
 	named := make(map[string]string)
 
