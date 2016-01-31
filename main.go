@@ -9,17 +9,14 @@ import (
 )
 
 func main() {
-	nick := os.Getenv("CRAWSIBOT_NICK")
-	pass := os.Getenv("CRAWSIBOT_OAUTH_TOKEN")
-
-	conn, err := net.Dial("tcp", "irc.twitch.tv:6667")
+	conn, err := net.Dial("tcp", "localhost:3000")
 	if err != nil {
 		fmt.Printf("Danger, Will Robinson! %s", err.Error)
 		os.Exit(1)
 	}
 	defer conn.Close()
 
-	fmt.Fprintf(conn, "PASS %s\r\nNICK %s\r\n", pass, nick)
+	fmt.Fprintf(conn, "PASS some-password\r\nNICK some-username\r\n")
 	fmt.Fprintf(conn, "JOIN #crawsible\r\n")
 	fmt.Fprintf(conn, "PRIVMSG #crawsible :I HAVE ARRIVED.\r\n")
 	ircReader := bufio.NewReader(conn)
