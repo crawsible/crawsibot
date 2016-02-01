@@ -38,6 +38,16 @@ var _ = Describe("MessageCipher", func() {
 			Expect(msg.Command).To(Equal("RPL_WELCOME"))
 		})
 
+		It("correctly converts PINGs into FirstParam-less messages", func() {
+			msg, err := cipher.Decode("PING :some.server\r\n")
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(msg.NickOrSrvname).To(BeZero())
+			Expect(msg.Command).To(Equal("PING"))
+			Expect(msg.FirstParams).To(BeZero())
+			Expect(msg.Params).To(Equal("some.server"))
+		})
+
 		It("returns an error when the message is invalid", func() {
 			_, err := cipher.Decode("protocols lol")
 			Expect(err).To(HaveOccurred())

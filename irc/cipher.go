@@ -15,8 +15,10 @@ var msgRE *regexp.Regexp = regexp.MustCompile(
 	`\A` +
 		`(?:\:(?P<srvname>[a-zA-Z][^!\s]*)\S*\s+)?` +
 		`(?P<cmd>[a-zA-Z]+|[0-9]{3})\s+` +
-		`(?P<firstprms>[^:]+)` +
-		`(?:\s+\:(?P<params>.*))?` +
+		`(?P<firstprms>[^:]*[^\s:])?` +
+		`\s*` +
+		`(?:\:(?P<params>.*\S))?` +
+		`\s*` +
 		`\r\n\z`,
 )
 
