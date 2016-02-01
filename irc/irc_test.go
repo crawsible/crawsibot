@@ -47,29 +47,36 @@ var _ = Describe("IRC", func() {
 			Expect(fakeDialer.DialAddress).To(Equal("some.address:12345"))
 		})
 
-		It("should use the cipher to generate validation message strings", func() {
+		It("should use the cipher to generate login message strings", func() {
 			ircClient.Connect(cfg)
 
-			Expect(fakeCipher.EncodeCalls).To(Equal(2))
+			Expect(fakeCipher.EncodeCalls).To(Equal(3))
 			msg1 := fakeCipher.EncodeMessages[0]
 			msg2 := fakeCipher.EncodeMessages[1]
+			msg3 := fakeCipher.EncodeMessages[2]
 
 			Expect(msg1.Command).To(Equal("PASS"))
 			Expect(msg1.FirstParams).To(Equal("oauth:key"))
 			Expect(msg2.Command).To(Equal("NICK"))
 			Expect(msg2.FirstParams).To(Equal("some-nick"))
+			Expect(msg3.Command).To(Equal("CAP"))
+			Expect(msg3.FirstParams).To(Equal("REQ"))
+			Expect(msg3.Params).To(Equal("twitch.tv/membership"))
 		})
 
-		It("should validate against the conn with cipher-encoded messages", func() {
+		It("should validate and register with the conn using the cipher", func() {
 			fakeCipher.EncodeReturns = append(
 				fakeCipher.EncodeReturns,
 				"some-encoded-string1",
 				"some-encoded-string2",
+				"some-encoded-string3",
 			)
 			ircClient.Connect(cfg)
 
 			Expect(fakeConn.WriteCalls).To(Equal(1))
-			authMsg := []byte("some-encoded-string1some-encoded-string2")
+			authMsg := []byte(
+				"some-encoded-string1some-encoded-string2some-encoded-string3",
+			)
 			Expect(fakeConn.WriteMessage).To(Equal(authMsg))
 		})
 	})

@@ -37,7 +37,11 @@ var _ = Describe("Integration", func() {
 		Eventually(reqCh).Should(Receive(Equal("NICK some-username\r\n")))
 	})
 
-	It("joins the specified channel", func() {
+	It("registers IRCv3 capabilities with the server", func() {
+		Eventually(reqCh).Should(Receive(Equal("CAP REQ :twitch.tv/membership\r\n")))
+	})
+
+	XIt("joins the specified channel", func() {
 		Eventually(reqCh).Should(Receive(Equal("JOIN #somechannel\r\n")))
 	})
 

@@ -38,5 +38,14 @@ func (i *IRC) Connect(cfg *config.Config) {
 func (i *IRC) validateWithConn(conn net.Conn, cfg *config.Config) {
 	passMsg := &Message{Command: "PASS", FirstParams: cfg.Password}
 	nickMsg := &Message{Command: "NICK", FirstParams: cfg.Nick}
-	fmt.Fprintf(conn, "%s%s", i.Cipher.Encode(passMsg), i.Cipher.Encode(nickMsg))
+	capMsg := &Message{
+		Command:     "CAP",
+		FirstParams: "REQ",
+		Params:      "twitch.tv/membership",
+	}
+	fmt.Fprintf(conn, "%s%s%s",
+		i.Cipher.Encode(passMsg),
+		i.Cipher.Encode(nickMsg),
+		i.Cipher.Encode(capMsg),
+	)
 }
