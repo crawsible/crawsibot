@@ -18,36 +18,34 @@ var _ = Describe("Integration", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	Describe("with all necessary arguments", func() {
-		BeforeEach(func() {
-			command := exec.Command(
-				crawsibotPath,
-				"-a", "localhost:3000",
-				"-n", "some-username",
-				"-p", "some-password",
-				"-c", "somechannel",
-			)
+	BeforeEach(func() {
+		command := exec.Command(
+			crawsibotPath,
+			"-a", "localhost:3000",
+			"-n", "some-username",
+			"-p", "some-password",
+			"-c", "somechannel",
+		)
 
-			var err error
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		It("validates with the server using the specified credentials", func() {
-			Eventually(reqCh).Should(Receive(Equal("PASS some-password\r\n")))
-			Eventually(reqCh).Should(Receive(Equal("NICK some-username\r\n")))
-		})
-
-		XIt("joins the specified channel", func() {
-			Eventually(reqCh).Should(Receive(Equal("JOIN #somechannel\r\n")))
-		})
-
-		XIt("Announces its arrival", func() {
-			Eventually(reqCh).Should(Receive(Equal("PRIVMSG #somechannel :COME WITH ME IF YOU WANT TO LIVE.")))
-		})
-
-		XIt("PONGs when it gets PINGED", func() {})
+		var err error
+		session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).NotTo(HaveOccurred())
 	})
+
+	It("validates with the server using the specified credentials", func() {
+		Eventually(reqCh).Should(Receive(Equal("PASS some-password\r\n")))
+		Eventually(reqCh).Should(Receive(Equal("NICK some-username\r\n")))
+	})
+
+	It("joins the specified channel", func() {
+		Eventually(reqCh).Should(Receive(Equal("JOIN #somechannel\r\n")))
+	})
+
+	XIt("Announces its arrival", func() {
+		Eventually(reqCh).Should(Receive(Equal("PRIVMSG #somechannel :COME WITH ME IF YOU WANT TO LIVE.")))
+	})
+
+	XIt("PONGs when it gets PINGED", func() {})
 
 	AfterSuite(func() {
 		gexec.CleanupBuildArtifacts()
