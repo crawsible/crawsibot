@@ -50,10 +50,6 @@ func serverCycle(ln net.Listener, reqCh, resCh chan string) {
 			fmt.Println(err.Error())
 			return
 		}
-		if line == "EOF\r\n" {
-			fmt.Println("signing off!")
-			return
-		}
 
 		reqCh <- line
 	}
