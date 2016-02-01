@@ -32,6 +32,10 @@ var _ = Describe("Integration", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
+	AfterSuite(func() {
+		gexec.CleanupBuildArtifacts()
+	})
+
 	It("validates with the server using the specified credentials", func() {
 		Eventually(reqCh).Should(Receive(Equal("PASS some-password\r\n")))
 		Eventually(reqCh).Should(Receive(Equal("NICK some-username\r\n")))
@@ -41,17 +45,17 @@ var _ = Describe("Integration", func() {
 		Eventually(reqCh).Should(Receive(Equal("CAP REQ :twitch.tv/membership\r\n")))
 	})
 
+	FIt("PONGs when it gets PINGed", func() {
+		Eventually(reqCh).Should(Receive(Equal("CAP REQ :twitch.tv/membership\r\n")))
+		resCh <- "PING :tmi.twitch.tv\r\n"
+		Eventually(reqCh).Should(Receive(Equal("PONG :tmi.twitch.tv\r\n")))
+	})
+
 	XIt("joins the specified channel", func() {
 		Eventually(reqCh).Should(Receive(Equal("JOIN #somechannel\r\n")))
 	})
 
 	XIt("Announces its arrival", func() {
 		Eventually(reqCh).Should(Receive(Equal("PRIVMSG #somechannel :COME WITH ME IF YOU WANT TO LIVE.")))
-	})
-
-	XIt("PONGs when it gets PINGED", func() {})
-
-	AfterSuite(func() {
-		gexec.CleanupBuildArtifacts()
 	})
 })

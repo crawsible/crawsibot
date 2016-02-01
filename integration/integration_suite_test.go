@@ -41,6 +41,12 @@ func serverCycle(ln net.Listener, reqCh, resCh chan string) {
 	}
 	defer conn.Close()
 
+	go func() {
+		for msg := range resCh {
+			fmt.Fprintf(conn, msg)
+		}
+	}()
+
 	reader := bufio.NewReader(conn)
 	var line string
 
