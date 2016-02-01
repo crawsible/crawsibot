@@ -49,7 +49,7 @@ var _ = Describe("Sender", func() {
 		})
 
 		It("writes to the provided conn with the encoded message", func() {
-			fakeCipher.EncodeReturns = []string{"SOME encodedstring\r\n"}
+			fakeCipher.EncodeStrings = []string{"SOME encodedstring\r\n"}
 
 			sendCh <- &irc.Message{}
 			Eventually(fakeWriter.WriteCalls).Should(Equal(1))
