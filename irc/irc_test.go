@@ -13,22 +13,21 @@ var _ = Describe("IRC", func() {
 	var (
 		fakeDialer *mocks.FakeDialer
 		fakeConn   *mocks.FakeConn
-		fakeCipher *mocks.FakeCipher
+		fakeSender *mocks.FakeSender
 
-		ircClient *irc.IRC
-		cfg       *config.Config
+		client *irc.IRC
+		cfg    *config.Config
 	)
 
 	BeforeEach(func() {
 		fakeDialer = &mocks.FakeDialer{}
 		fakeConn = &mocks.FakeConn{}
-		fakeCipher = &mocks.FakeCipher{}
-
 		fakeDialer.DialReturnConn = fakeConn
+		fakeSender = &mocks.FakeSender{}
 
-		ircClient = &irc.IRC{
+		client = &irc.IRC{
 			Dialer: fakeDialer,
-			Cipher: fakeCipher,
+			Sender: fakeSender,
 		}
 
 		cfg = &config.Config{
@@ -39,45 +38,40 @@ var _ = Describe("IRC", func() {
 	})
 
 	Describe("#Connect", func() {
-		It("should dial the given address over tcp", func() {
-			ircClient.Connect(cfg)
+		It("dials the given address over tcp", func() {
+			client.Connect(cfg)
 
 			Expect(fakeDialer.DialCalls).To(Equal(1))
 			Expect(fakeDialer.DialNetwork).To(Equal("tcp"))
 			Expect(fakeDialer.DialAddress).To(Equal("some.address:12345"))
 		})
 
-		It("should use the cipher to generate login message strings", func() {
-			ircClient.Connect(cfg)
+		It("initiates the sender with the returned conn", func() {
+			client.Connect(cfg)
 
-			Expect(fakeCipher.EncodeCalls).To(Equal(3))
-			msg1 := fakeCipher.EncodeMessages[0]
-			msg2 := fakeCipher.EncodeMessages[1]
-			msg3 := fakeCipher.EncodeMessages[2]
-
-			Expect(msg1.Command).To(Equal("PASS"))
-			Expect(msg1.FirstParams).To(Equal("oauth:key"))
-			Expect(msg2.Command).To(Equal("NICK"))
-			Expect(msg2.FirstParams).To(Equal("some-nick"))
-			Expect(msg3.Command).To(Equal("CAP"))
-			Expect(msg3.FirstParams).To(Equal("REQ"))
-			Expect(msg3.Params).To(Equal("twitch.tv/membership"))
+			Expect(fakeSender.StartSendingCalls).To(Equal(1))
+			Expect(fakeSender.StartSendingConn).To(Equal(fakeConn))
 		})
 
-		It("should validate and register with the conn using the cipher", func() {
-			fakeCipher.EncodeReturns = append(
-				fakeCipher.EncodeReturns,
-				"some-encoded-string1",
-				"some-encoded-string2",
-				"some-encoded-string3",
-			)
-			ircClient.Connect(cfg)
+		It("sends login messages to the server via the sender", func() {
+			msgCh := make(chan *irc.Message)
+			defer close(msgCh)
+			fakeSender.ReturnCh = msgCh
 
-			Expect(fakeConn.WriteCalls).To(Equal(1))
-			authMsg := []byte(
-				"some-encoded-string1some-encoded-string2some-encoded-string3",
-			)
-			Expect(fakeConn.WriteMessage).To(Equal(authMsg))
+			client.Connect(cfg)
+
+			Eventually(fakeSender.ReceivedOverChan).Should(HaveLen(3))
+
+			passMsg := &irc.Message{Command: "PASS", FirstParams: cfg.Password}
+			nickMsg := &irc.Message{Command: "NICK", FirstParams: cfg.Nick}
+			capMsg := &irc.Message{
+				Command:     "CAP",
+				FirstParams: "REQ",
+				Params:      "twitch.tv/membership",
+			}
+			Expect(fakeSender.ReceivedOverChan()[0]).To(Equal(passMsg))
+			Expect(fakeSender.ReceivedOverChan()[1]).To(Equal(nickMsg))
+			Expect(fakeSender.ReceivedOverChan()[2]).To(Equal(capMsg))
 		})
 	})
 })

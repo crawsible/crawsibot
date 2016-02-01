@@ -21,4 +21,7 @@ func init() {
 func main() {
 	cfg.MakeFlags(flag.NewFlagSet("config", flag.PanicOnError), os.Args[1:])
 	client.Connect(cfg)
+
+	keepaliveCh := make(chan struct{})
+	<-keepaliveCh
 }

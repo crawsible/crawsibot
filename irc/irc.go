@@ -1,7 +1,6 @@
 package irc
 
 import (
-	"fmt"
 	"net"
 
 	"github.com/crawsible/crawsibot/config"
@@ -11,41 +10,37 @@ type Dialer interface {
 	Dial(network, address string) (net.Conn, error)
 }
 
-type Cipher interface {
-	Decode(string) (*Message, error)
-	Encode(*Message) string
+type IRCSender interface {
+	StartSending(conn net.Conn) chan *Message
 }
 
 type IRC struct {
 	Dialer Dialer
-	Cipher Cipher
+	Sender IRCSender
+
+	sendCh chan *Message
 }
 
 func New() *IRC {
 	return &IRC{
 		Dialer: &net.Dialer{},
-		Cipher: &MessageCipher{},
+		Sender: NewSender(),
 	}
 }
 
 func (i *IRC) Connect(cfg *config.Config) {
 	conn, _ := i.Dialer.Dial("tcp", cfg.Address)
-	defer conn.Close()
 
-	i.validateWithConn(conn, cfg)
+	i.sendCh = i.Sender.StartSending(conn)
+	i.validate(cfg)
 }
 
-func (i *IRC) validateWithConn(conn net.Conn, cfg *config.Config) {
-	passMsg := &Message{Command: "PASS", FirstParams: cfg.Password}
-	nickMsg := &Message{Command: "NICK", FirstParams: cfg.Nick}
-	capMsg := &Message{
+func (i *IRC) validate(cfg *config.Config) {
+	i.sendCh <- &Message{Command: "PASS", FirstParams: cfg.Password}
+	i.sendCh <- &Message{Command: "NICK", FirstParams: cfg.Nick}
+	i.sendCh <- &Message{
 		Command:     "CAP",
 		FirstParams: "REQ",
 		Params:      "twitch.tv/membership",
 	}
-	fmt.Fprintf(conn, "%s%s%s",
-		i.Cipher.Encode(passMsg),
-		i.Cipher.Encode(nickMsg),
-		i.Cipher.Encode(capMsg),
-	)
 }

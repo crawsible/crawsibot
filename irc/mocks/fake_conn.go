@@ -6,14 +6,18 @@ import (
 )
 
 type FakeConn struct {
-	WriteCalls   int
+	writeCalls   int
 	WriteMessage []byte
 }
 
 func (c *FakeConn) Write(b []byte) (int, error) {
-	c.WriteCalls += 1
+	c.writeCalls += 1
 	c.WriteMessage = b
 	return 0, nil
+}
+
+func (c *FakeConn) WriteCalls() int {
+	return c.writeCalls
 }
 
 func (c *FakeConn) Read(b []byte) (int, error)         { return 0, nil }
