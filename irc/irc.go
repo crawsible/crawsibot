@@ -1,6 +1,7 @@
 package irc
 
 import (
+	"io"
 	"net"
 
 	"github.com/crawsible/crawsibot/config"
@@ -11,7 +12,7 @@ type Dialer interface {
 }
 
 type IRCSender interface {
-	StartSending(conn net.Conn) chan *Message
+	StartSending(wtr io.Writer) chan *Message
 }
 
 type IRC struct {

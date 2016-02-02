@@ -1,22 +1,22 @@
 package mocks
 
 import (
-	"net"
+	"io"
 
 	"github.com/crawsible/crawsibot/irc"
 )
 
 type FakeSender struct {
-	StartSendingCalls int
-	StartSendingConn  net.Conn
-	ReturnCh          chan *irc.Message
+	StartSendingCalls  int
+	StartSendingWriter io.Writer
+	ReturnCh           chan *irc.Message
 
 	rcvdMsgs []*irc.Message
 }
 
-func (s *FakeSender) StartSending(conn net.Conn) chan *irc.Message {
+func (s *FakeSender) StartSending(wtr io.Writer) chan *irc.Message {
 	s.StartSendingCalls += 1
-	s.StartSendingConn = conn
+	s.StartSendingWriter = wtr
 
 	if s.ReturnCh == nil {
 		return make(chan *irc.Message, 1000)

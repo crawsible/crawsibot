@@ -1,9 +1,6 @@
 package irc
 
-import (
-	"fmt"
-	"net"
-)
+import "io"
 
 type Encoder interface {
 	Encode(*Message) string
@@ -19,11 +16,11 @@ func NewSender() *Sender {
 	}
 }
 
-func (s *Sender) StartSending(conn net.Conn) chan *Message {
+func (s *Sender) StartSending(wtr io.Writer) chan *Message {
 	sendCh := make(chan *Message, 90)
 	go func() {
 		for msg := range sendCh {
-			fmt.Fprintf(conn, s.Encoder.Encode(msg))
+			wtr.Write([]byte(s.Encoder.Encode(msg)))
 		}
 	}()
 

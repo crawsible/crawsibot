@@ -5,22 +5,10 @@ import (
 	"time"
 )
 
-type FakeConn struct {
-	writeCalls   int
-	WriteMessage []byte
-}
-
-func (c *FakeConn) Write(b []byte) (int, error) {
-	c.writeCalls += 1
-	c.WriteMessage = b
-	return 0, nil
-}
-
-func (c *FakeConn) WriteCalls() int {
-	return c.writeCalls
-}
+type FakeConn struct{}
 
 func (c *FakeConn) Read(b []byte) (int, error)         { return 0, nil }
+func (c *FakeConn) Write([]byte) (int, error)          { return 0, nil }
 func (c *FakeConn) Close() error                       { return nil }
 func (c *FakeConn) LocalAddr() net.Addr                { return &FakeAddr{} }
 func (c *FakeConn) RemoteAddr() net.Addr               { return &FakeAddr{} }

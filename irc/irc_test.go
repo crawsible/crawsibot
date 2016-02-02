@@ -50,7 +50,7 @@ var _ = Describe("IRC", func() {
 			client.Connect(cfg)
 
 			Expect(fakeSender.StartSendingCalls).To(Equal(1))
-			Expect(fakeSender.StartSendingConn).To(Equal(fakeConn))
+			Expect(fakeSender.StartSendingWriter).To(Equal(fakeConn))
 		})
 
 		It("sends login messages to the server via the sender", func() {

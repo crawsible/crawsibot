@@ -11,7 +11,7 @@ import (
 var _ = Describe("Sender", func() {
 	Describe("#StartSending", func() {
 		var (
-			fakeConn   *mocks.FakeConn
+			fakeWriter *mocks.FakeWriter
 			fakeCipher *mocks.FakeCipher
 
 			sender *irc.Sender
@@ -19,14 +19,18 @@ var _ = Describe("Sender", func() {
 		)
 
 		BeforeEach(func() {
-			fakeConn = &mocks.FakeConn{}
+			fakeWriter = &mocks.FakeWriter{}
 			fakeCipher = &mocks.FakeCipher{}
 
 			sender = &irc.Sender{
 				Encoder: fakeCipher,
 			}
-			sendCh = sender.StartSending(fakeConn)
+			sendCh = sender.StartSending(fakeWriter)
 			Eventually(sendCh).ShouldNot(BeNil())
+		})
+
+		AfterEach(func() {
+			close(sendCh)
 		})
 
 		It("returns a channel with a buffer capacity of 90", func() {
@@ -48,12 +52,8 @@ var _ = Describe("Sender", func() {
 			fakeCipher.EncodeReturns = []string{"SOME encodedstring\r\n"}
 
 			sendCh <- &irc.Message{}
-			Eventually(fakeConn.WriteCalls).Should(Equal(1))
-			Expect(fakeConn.WriteMessage).To(Equal([]byte("SOME encodedstring\r\n")))
-		})
-
-		AfterEach(func() {
-			close(sendCh)
+			Eventually(fakeWriter.WriteCalls).Should(Equal(1))
+			Expect(fakeWriter.WriteMessage).To(Equal([]byte("SOME encodedstring\r\n")))
 		})
 	})
 })
