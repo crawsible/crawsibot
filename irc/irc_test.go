@@ -1,6 +1,8 @@
 package irc_test
 
 import (
+	"bufio"
+
 	"github.com/crawsible/crawsibot/config"
 	"github.com/crawsible/crawsibot/irc"
 	"github.com/crawsible/crawsibot/irc/mocks"
@@ -11,9 +13,10 @@ import (
 
 var _ = Describe("IRC", func() {
 	var (
-		fakeDialer *mocks.FakeDialer
-		fakeConn   *mocks.FakeConn
-		fakeSender *mocks.FakeSender
+		fakeDialer    *mocks.FakeDialer
+		fakeConn      *mocks.FakeConn
+		fakeSender    *mocks.FakeSender
+		fakeForwarder *mocks.FakeForwarder
 
 		client *irc.IRC
 		cfg    *config.Config
@@ -24,10 +27,12 @@ var _ = Describe("IRC", func() {
 		fakeConn = &mocks.FakeConn{}
 		fakeDialer.DialReturnConn = fakeConn
 		fakeSender = &mocks.FakeSender{}
+		fakeForwarder = &mocks.FakeForwarder{}
 
 		client = &irc.IRC{
-			Dialer: fakeDialer,
-			Sender: fakeSender,
+			Dialer:    fakeDialer,
+			Sender:    fakeSender,
+			Forwarder: fakeForwarder,
 		}
 
 		cfg = &config.Config{
@@ -51,6 +56,14 @@ var _ = Describe("IRC", func() {
 
 			Expect(fakeSender.StartSendingCalls).To(Equal(1))
 			Expect(fakeSender.StartSendingWriter).To(Equal(fakeConn))
+		})
+
+		It("initiates the forwarder with a new reader for the conn", func() {
+			client.Connect(cfg)
+
+			Expect(fakeForwarder.StartForwardingCalls).To(Equal(1))
+			fakeReader := bufio.NewReader(fakeConn)
+			Expect(fakeForwarder.StartForwardingReader).To(Equal(fakeReader))
 		})
 
 		It("sends login messages to the server via the sender", func() {

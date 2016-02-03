@@ -1,6 +1,7 @@
 package irc
 
 import (
+	"bufio"
 	"io"
 	"net"
 
@@ -15,17 +16,23 @@ type IRCSender interface {
 	StartSending(wtr io.Writer) chan *Message
 }
 
+type IRCForwarder interface {
+	StartForwarding(ReadStringer)
+}
+
 type IRC struct {
-	Dialer Dialer
-	Sender IRCSender
+	Dialer    Dialer
+	Sender    IRCSender
+	Forwarder IRCForwarder
 
 	sendCh chan *Message
 }
 
 func New() *IRC {
 	return &IRC{
-		Dialer: &net.Dialer{},
-		Sender: NewSender(),
+		Dialer:    &net.Dialer{},
+		Sender:    NewSender(),
+		Forwarder: &Forwarder{},
 	}
 }
 
@@ -33,6 +40,7 @@ func (i *IRC) Connect(cfg *config.Config) {
 	conn, _ := i.Dialer.Dial("tcp", cfg.Address)
 
 	i.sendCh = i.Sender.StartSending(conn)
+	i.Forwarder.StartForwarding(bufio.NewReader(conn))
 	i.validate(cfg)
 }
 
