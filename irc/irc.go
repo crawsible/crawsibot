@@ -17,13 +17,19 @@ type IRCSender interface {
 }
 
 type IRCForwarder interface {
+	EnrollForPING(PINGRecipient)
 	StartForwarding(ReadStringer)
+}
+
+type IRCPonger interface {
+	RcvPING(nick, fprms, prms string)
 }
 
 type IRC struct {
 	Dialer    Dialer
 	Sender    IRCSender
 	Forwarder IRCForwarder
+	Ponger    PINGRecipient
 
 	sendCh chan *Message
 }
@@ -33,6 +39,7 @@ func New() *IRC {
 		Dialer:    &net.Dialer{},
 		Sender:    NewSender(),
 		Forwarder: &Forwarder{},
+		//Ponger:    &Ponger{},
 	}
 }
 
@@ -40,6 +47,7 @@ func (i *IRC) Connect(cfg *config.Config) {
 	conn, _ := i.Dialer.Dial("tcp", cfg.Address)
 
 	i.sendCh = i.Sender.StartSending(conn)
+	i.Forwarder.EnrollForPING(i.Ponger)
 	i.Forwarder.StartForwarding(bufio.NewReader(conn))
 	i.validate(cfg)
 }

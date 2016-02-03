@@ -1,5 +1,5 @@
 - Does it make sense to add concurrency tests to Sender modeled off of Forwarder?
 - generalize forwarder loop with ForwardingRegister helper object
-- add ping-ponger as PINGRecipient to keep the Twitch connection alive
+X add ping-ponger as PINGRecipient to keep the Twitch connection alive
 - reeeeeeally might want to be handling those errors, buddy
 

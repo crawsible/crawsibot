@@ -17,22 +17,24 @@ var _ = Describe("IRC", func() {
 		fakeConn      *mocks.FakeConn
 		fakeSender    *mocks.FakeSender
 		fakeForwarder *mocks.FakeForwarder
+		fakePonger    *mocks.FakePonger
 
 		client *irc.IRC
 		cfg    *config.Config
 	)
 
 	BeforeEach(func() {
-		fakeDialer = &mocks.FakeDialer{}
 		fakeConn = &mocks.FakeConn{}
-		fakeDialer.DialReturnConn = fakeConn
+		fakeDialer = &mocks.FakeDialer{DialReturnConn: fakeConn}
 		fakeSender = &mocks.FakeSender{}
 		fakeForwarder = &mocks.FakeForwarder{}
+		fakePonger = &mocks.FakePonger{}
 
 		client = &irc.IRC{
 			Dialer:    fakeDialer,
 			Sender:    fakeSender,
 			Forwarder: fakeForwarder,
+			Ponger:    fakePonger,
 		}
 
 		cfg = &config.Config{
@@ -43,7 +45,7 @@ var _ = Describe("IRC", func() {
 	})
 
 	Describe("#Connect", func() {
-		It("dials the given address over tcp", func() {
+		It("dials the given address over TCP", func() {
 			client.Connect(cfg)
 
 			Expect(fakeDialer.DialCalls).To(Equal(1))
@@ -51,14 +53,22 @@ var _ = Describe("IRC", func() {
 			Expect(fakeDialer.DialAddress).To(Equal("some.address:12345"))
 		})
 
-		It("initiates the sender with the returned conn", func() {
+		It("initiates the Sender with the returned Conn", func() {
 			client.Connect(cfg)
 
 			Expect(fakeSender.StartSendingCalls).To(Equal(1))
 			Expect(fakeSender.StartSendingWriter).To(Equal(fakeConn))
 		})
 
-		It("initiates the forwarder with a new reader for the conn", func() {
+		It("registers its Ponger for PINGs with the unstarted Forwarder", func() {
+			client.Connect(cfg)
+
+			Expect(fakeForwarder.EnrollForPINGCalls).To(Equal(1))
+			Expect(fakeForwarder.EnrollForPINGPonger).To(Equal(fakePonger))
+			Expect(fakeForwarder.EnrollForPINGPreviousStarts).To(Equal(0))
+		})
+
+		It("initiates the Forwarder with a new Reader for the Conn", func() {
 			client.Connect(cfg)
 
 			Expect(fakeForwarder.StartForwardingCalls).To(Equal(1))
@@ -66,7 +76,7 @@ var _ = Describe("IRC", func() {
 			Expect(fakeForwarder.StartForwardingReader).To(Equal(fakeReader))
 		})
 
-		It("sends login messages to the server via the sender", func() {
+		It("sends login messages to the server via the Sender", func() {
 			msgCh := make(chan *irc.Message)
 			defer close(msgCh)
 			fakeSender.ReturnCh = msgCh
