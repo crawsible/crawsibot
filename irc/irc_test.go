@@ -77,24 +77,28 @@ var _ = Describe("IRC", func() {
 		})
 
 		It("sends login messages to the server via the Sender", func() {
-			msgCh := make(chan *irc.Message)
-			defer close(msgCh)
-			fakeSender.ReturnCh = msgCh
-
 			client.Connect(cfg)
 
-			Eventually(fakeSender.ReceivedOverChan).Should(HaveLen(3))
+			Expect(fakeSender.SendCalls).Should(Equal(3))
 
-			passMsg := &irc.Message{Command: "PASS", FirstParams: cfg.Password}
-			nickMsg := &irc.Message{Command: "NICK", FirstParams: cfg.Nick}
-			capMsg := &irc.Message{
-				Command:     "CAP",
-				FirstParams: "REQ",
-				Params:      "twitch.tv/membership",
-			}
-			Expect(fakeSender.ReceivedOverChan()[0]).To(Equal(passMsg))
-			Expect(fakeSender.ReceivedOverChan()[1]).To(Equal(nickMsg))
-			Expect(fakeSender.ReceivedOverChan()[2]).To(Equal(capMsg))
+			passArgs := []string{"PASS", cfg.Password, ""}
+			nickArgs := []string{"NICK", cfg.Nick, ""}
+			capArgs := []string{"CAP", "REQ", "twitch.tv/membership"}
+
+			Expect(fakeSender.SendArgs[0]).To(Equal(passArgs))
+			Expect(fakeSender.SendArgs[1]).To(Equal(nickArgs))
+			Expect(fakeSender.SendArgs[2]).To(Equal(capArgs))
+		})
+	})
+
+	Describe("#Send", func() {
+		It("calls through to its sender", func() {
+			client.Send("some-cmd", "some-fprms", "some-prms")
+
+			Expect(fakeSender.SendCalls).To(Equal(1))
+
+			expectedArgs := []string{"some-cmd", "some-fprms", "some-prms"}
+			Expect(fakeSender.SendArgs[0]).To(Equal(expectedArgs))
 		})
 	})
 })

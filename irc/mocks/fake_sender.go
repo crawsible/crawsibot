@@ -9,28 +9,18 @@ import (
 type FakeSender struct {
 	StartSendingCalls  int
 	StartSendingWriter io.Writer
-	ReturnCh           chan *irc.Message
+	SendCh             chan *irc.Message
 
-	rcvdMsgs []*irc.Message
+	SendCalls int
+	SendArgs  [][]string
 }
 
-func (s *FakeSender) StartSending(wtr io.Writer) chan *irc.Message {
+func (s *FakeSender) StartSending(wtr io.Writer) {
 	s.StartSendingCalls += 1
 	s.StartSendingWriter = wtr
-
-	if s.ReturnCh == nil {
-		return make(chan *irc.Message, 1000)
-	} else {
-		go func() {
-			for msg := range s.ReturnCh {
-				s.rcvdMsgs = append(s.rcvdMsgs, msg)
-			}
-		}()
-
-		return s.ReturnCh
-	}
 }
 
-func (s *FakeSender) ReceivedOverChan() []*irc.Message {
-	return s.rcvdMsgs
+func (s *FakeSender) Send(cmd, fprms, prms string) {
+	s.SendCalls += 1
+	s.SendArgs = append(s.SendArgs, []string{cmd, fprms, prms})
 }

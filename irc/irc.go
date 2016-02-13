@@ -13,7 +13,8 @@ type Dialer interface {
 }
 
 type IRCSender interface {
-	StartSending(wtr io.Writer) chan *Message
+	StartSending(wtr io.Writer)
+	Send(cmd, fprms, prms string)
 }
 
 type IRCForwarder interface {
@@ -46,18 +47,15 @@ func New() *IRC {
 func (i *IRC) Connect(cfg *config.Config) {
 	conn, _ := i.Dialer.Dial("tcp", cfg.Address)
 
-	i.sendCh = i.Sender.StartSending(conn)
+	i.Sender.StartSending(conn)
 	i.Forwarder.EnrollForPING(i.Ponger)
 	i.Forwarder.StartForwarding(bufio.NewReader(conn))
-	i.validate(cfg)
+
+	i.Sender.Send("PASS", cfg.Password, "")
+	i.Sender.Send("NICK", cfg.Nick, "")
+	i.Sender.Send("CAP", "REQ", "twitch.tv/membership")
 }
 
-func (i *IRC) validate(cfg *config.Config) {
-	i.sendCh <- &Message{Command: "PASS", FirstParams: cfg.Password}
-	i.sendCh <- &Message{Command: "NICK", FirstParams: cfg.Nick}
-	i.sendCh <- &Message{
-		Command:     "CAP",
-		FirstParams: "REQ",
-		Params:      "twitch.tv/membership",
-	}
+func (i *IRC) Send(cmd, fprms, prms string) {
+	i.Sender.Send(cmd, fprms, prms)
 }

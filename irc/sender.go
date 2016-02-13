@@ -8,6 +8,7 @@ type Encoder interface {
 
 type Sender struct {
 	Encoder Encoder
+	SendCh  chan *Message
 }
 
 func NewSender() *Sender {
@@ -16,13 +17,15 @@ func NewSender() *Sender {
 	}
 }
 
-func (s *Sender) StartSending(wtr io.Writer) chan *Message {
-	sendCh := make(chan *Message, 90)
+func (s *Sender) StartSending(wtr io.Writer) {
+	s.SendCh = make(chan *Message, 90)
 	go func() {
-		for msg := range sendCh {
+		for msg := range s.SendCh {
 			wtr.Write([]byte(s.Encoder.Encode(msg)))
 		}
 	}()
+}
 
-	return sendCh
+func (s *Sender) Send(cmd, fprms, prms string) {
+	s.SendCh <- &Message{"", cmd, fprms, prms}
 }
