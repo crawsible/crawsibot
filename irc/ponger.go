@@ -15,6 +15,6 @@ func (p *ServerPonger) StartPonging(msgr Messenger) {
 	}()
 }
 
-func (p *ServerPonger) RcvPING(nick, fprms, prms string) {
+func (p *ServerPonger) RcvMsg(nick, fprms, prms string) {
 	p.PingCh <- prms
 }

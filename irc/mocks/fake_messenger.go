@@ -3,16 +3,16 @@ package mocks
 import "github.com/crawsible/crawsibot/irc"
 
 type FakeMessenger struct {
-	EnrollForPINGCalls     int
-	EnrollForPINGRcvr irc.PINGRcvr
+	EnrollForPINGCalls   int
+	EnrollForPINGMsgRcvr irc.MsgRcvr
 
 	SendArgs  [][]string
 	sendCalls int
 }
 
-func (m *FakeMessenger) EnrollForPING(rcp irc.PINGRcvr) {
+func (m *FakeMessenger) EnrollForPING(mrc irc.MsgRcvr) {
 	m.EnrollForPINGCalls += 1
-	m.EnrollForPINGRcvr = rcp
+	m.EnrollForPINGMsgRcvr = mrc
 }
 
 func (m *FakeMessenger) Send(cmd, fprms, prms string) {

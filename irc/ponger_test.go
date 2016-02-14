@@ -30,7 +30,7 @@ var _ = Describe("Ponger", func() {
 
 		It("enrolls itself for PINGs with the messenger", func() {
 			Expect(fakeMsgr.EnrollForPINGCalls).To(Equal(1))
-			Expect(fakeMsgr.EnrollForPINGRcvr).To(Equal(ponger))
+			Expect(fakeMsgr.EnrollForPINGMsgRcvr).To(Equal(ponger))
 		})
 
 		Context("once ponging has started", func() {
@@ -55,7 +55,7 @@ var _ = Describe("Ponger", func() {
 		})
 	})
 
-	Describe("#RcvPING", func() {
+	Describe("#RcvMsg", func() {
 		var fakeCh chan string
 
 		BeforeEach(func() {
@@ -68,7 +68,7 @@ var _ = Describe("Ponger", func() {
 		})
 
 		It("sends a constructed PingMsg to its PingCh", func() {
-			ponger.RcvPING("", "", "some-server")
+			ponger.RcvMsg("", "", "some-server")
 
 			Expect(fakeCh).To(HaveLen(1))
 			Expect(<-fakeCh).To(Equal("some-server"))

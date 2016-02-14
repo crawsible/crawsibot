@@ -115,9 +115,9 @@ var _ = Describe("IRC", func() {
 				fakeReceiver := &mocks.FakeReceiver{}
 				client.EnrollForPING(fakeReceiver)
 
-				Expect(fakeForwarder.EnrollForPINGCalls).To(Equal(1))
-				Expect(fakeForwarder.EnrollForPINGRcvr).To(Equal(fakeReceiver))
-				Expect(fakeForwarder.EnrollForPINGRcvr).To(Equal(fakeReceiver))
+				Expect(fakeForwarder.EnrollForMsgCalls).To(Equal(1))
+				Expect(fakeForwarder.EnrollForMsgRcvr).To(Equal(fakeReceiver))
+				Expect(fakeForwarder.EnrollForMsgRcvr).To(Equal(fakeReceiver))
 			})
 		})
 

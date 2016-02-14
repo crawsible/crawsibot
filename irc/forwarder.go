@@ -1,7 +1,7 @@
 package irc
 
 type MessageForwarder struct {
-	PINGRcvrs []PINGRcvr
+	PINGRcvrs []MsgRcvr
 }
 
 type ReadStringer interface {
@@ -25,7 +25,7 @@ func (f *MessageForwarder) forward(rsr ReadStringer, dcdr Decoder) {
 
 		msg, _ := dcdr.Decode(msgStr)
 		for _, rcp := range f.PINGRcvrs {
-			rcp.RcvPING(
+			rcp.RcvMsg(
 				msg.NickOrSrvname,
 				msg.FirstParams,
 				msg.Params,
@@ -34,16 +34,16 @@ func (f *MessageForwarder) forward(rsr ReadStringer, dcdr Decoder) {
 	}
 }
 
-type PINGRcvr interface {
-	RcvPING(nick, fprms, prms string)
+type MsgRcvr interface {
+	RcvMsg(nick, fprms, prms string)
 }
 
-func (f *MessageForwarder) EnrollForPING(rcp PINGRcvr) {
-	for _, addedRcp := range f.PINGRcvrs {
-		if rcp == addedRcp {
+func (f *MessageForwarder) EnrollForMsgs(mrc MsgRcvr, cmd string) {
+	for _, addedMrc := range f.PINGRcvrs {
+		if mrc == addedMrc {
 			return
 		}
 	}
 
-	f.PINGRcvrs = append(f.PINGRcvrs, rcp)
+	f.PINGRcvrs = append(f.PINGRcvrs, mrc)
 }
