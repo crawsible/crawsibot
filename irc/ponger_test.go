@@ -8,14 +8,14 @@ import (
 )
 
 var _ = Describe("Ponger", func() {
-	var ponger *irc.Ponger
+	var ponger *irc.ServerPonger
 
 	Describe("#StartPonging", func() {
 		var fakeMsgr *mocks.FakeMessenger
 
 		BeforeEach(func() {
 			fakeMsgr = &mocks.FakeMessenger{}
-			ponger = &irc.Ponger{}
+			ponger = &irc.ServerPonger{}
 
 			ponger.StartPonging(fakeMsgr)
 		})
@@ -60,7 +60,7 @@ var _ = Describe("Ponger", func() {
 
 		BeforeEach(func() {
 			fakeCh = make(chan string, 1)
-			ponger = &irc.Ponger{PingCh: fakeCh}
+			ponger = &irc.ServerPonger{PingCh: fakeCh}
 		})
 
 		AfterEach(func() {

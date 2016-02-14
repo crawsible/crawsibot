@@ -2,16 +2,15 @@ package irc
 
 import "io"
 
+type MessageSender struct {
+	SendCh chan *Message
+}
+
 type Encoder interface {
 	Encode(*Message) string
 }
 
-type Sender struct {
-	Encoder Encoder
-	SendCh  chan *Message
-}
-
-func (s *Sender) StartSending(wtr io.Writer, ecdr Encoder) {
+func (s *MessageSender) StartSending(wtr io.Writer, ecdr Encoder) {
 	s.SendCh = make(chan *Message, 90)
 	go func() {
 		for msg := range s.SendCh {
@@ -20,6 +19,6 @@ func (s *Sender) StartSending(wtr io.Writer, ecdr Encoder) {
 	}()
 }
 
-func (s *Sender) Send(cmd, fprms, prms string) {
+func (s *MessageSender) Send(cmd, fprms, prms string) {
 	s.SendCh <- &Message{"", cmd, fprms, prms}
 }

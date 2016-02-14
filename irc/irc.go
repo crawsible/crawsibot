@@ -17,17 +17,17 @@ type Cipher interface {
 	Decoder
 }
 
-type IRCSender interface {
+type Sender interface {
 	StartSending(wtr io.Writer, ecdr Encoder)
 	Send(cmd, fprms, prms string)
 }
 
-type IRCForwarder interface {
+type Forwarder interface {
 	StartForwarding(rsr ReadStringer, dcdr Decoder)
 	EnrollForPING(PINGRecipient)
 }
 
-type IRCPonger interface {
+type Ponger interface {
 	StartPonging(msgr Messenger)
 }
 
@@ -39,18 +39,18 @@ type Messenger interface {
 type IRC struct {
 	Dialer    Dialer
 	Cipher    Cipher
-	Sender    IRCSender
-	Forwarder IRCForwarder
-	Ponger    IRCPonger
+	Sender    Sender
+	Forwarder Forwarder
+	Ponger    Ponger
 }
 
 func New() *IRC {
 	return &IRC{
 		Dialer:    &net.Dialer{},
 		Cipher:    &MessageCipher{},
-		Sender:    &Sender{},
-		Forwarder: &Forwarder{},
-		Ponger:    &Ponger{},
+		Sender:    &MessageSender{},
+		Forwarder: &MessageForwarder{},
+		Ponger:    &ServerPonger{},
 	}
 }
 

@@ -13,14 +13,14 @@ var _ = Describe("Sender", func() {
 		fakeWriter *mocks.FakeWriter
 		fakeCipher *mocks.FakeCipher
 
-		sender *irc.Sender
+		sender *irc.MessageSender
 	)
 
 	BeforeEach(func() {
 		fakeWriter = &mocks.FakeWriter{}
 		fakeCipher = &mocks.FakeCipher{}
 
-		sender = &irc.Sender{}
+		sender = &irc.MessageSender{}
 	})
 
 	Describe("#StartSending", func() {

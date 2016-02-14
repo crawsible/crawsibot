@@ -1,10 +1,10 @@
 package irc
 
-type Ponger struct {
+type ServerPonger struct {
 	PingCh chan string
 }
 
-func (p *Ponger) StartPonging(msgr Messenger) {
+func (p *ServerPonger) StartPonging(msgr Messenger) {
 	p.PingCh = make(chan string)
 	msgr.EnrollForPING(p)
 
@@ -15,6 +15,6 @@ func (p *Ponger) StartPonging(msgr Messenger) {
 	}()
 }
 
-func (p *Ponger) RcvPING(nick, fprms, prms string) {
+func (p *ServerPonger) RcvPING(nick, fprms, prms string) {
 	p.PingCh <- prms
 }

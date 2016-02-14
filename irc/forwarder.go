@@ -1,6 +1,6 @@
 package irc
 
-type Forwarder struct {
+type MessageForwarder struct {
 	PINGRecipients []PINGRecipient
 }
 
@@ -12,11 +12,11 @@ type Decoder interface {
 	Decode(msgStr string) (*Message, error)
 }
 
-func (f *Forwarder) StartForwarding(rsr ReadStringer, dcdr Decoder) {
+func (f *MessageForwarder) StartForwarding(rsr ReadStringer, dcdr Decoder) {
 	go f.forward(rsr, dcdr)
 }
 
-func (f *Forwarder) forward(rsr ReadStringer, dcdr Decoder) {
+func (f *MessageForwarder) forward(rsr ReadStringer, dcdr Decoder) {
 	for {
 		msgStr, ok := rsr.ReadString('\n')
 		if ok != nil {
@@ -38,7 +38,7 @@ type PINGRecipient interface {
 	RcvPING(nick, fprms, prms string)
 }
 
-func (f *Forwarder) EnrollForPING(rcp PINGRecipient) {
+func (f *MessageForwarder) EnrollForPING(rcp PINGRecipient) {
 	for _, addedRcp := range f.PINGRecipients {
 		if rcp == addedRcp {
 			return

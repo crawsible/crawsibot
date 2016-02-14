@@ -11,12 +11,12 @@ var _ = Describe("Forwarder", func() {
 	var (
 		fakeRecipient *mocks.FakeRecipient
 
-		forwarder *irc.Forwarder
+		forwarder *irc.MessageForwarder
 	)
 
 	BeforeEach(func() {
 		fakeRecipient = &mocks.FakeRecipient{}
-		forwarder = &irc.Forwarder{}
+		forwarder = &irc.MessageForwarder{}
 	})
 
 	Describe("#EnrollForPING", func() {
