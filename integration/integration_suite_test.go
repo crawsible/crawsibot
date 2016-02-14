@@ -15,8 +15,8 @@ var reqCh chan string
 var resCh chan string
 
 func TestIntegration(t *testing.T) {
-	reqCh = make(chan string)
-	resCh = make(chan string)
+	reqCh = make(chan string, 1000)
+	resCh = make(chan string, 1000)
 
 	RegisterFailHandler(Fail)
 	go mockIRCServer(reqCh, resCh)
@@ -35,11 +35,8 @@ func mockIRCServer(reqCh, resCh chan string) {
 }
 
 func serverCycle(ln net.Listener, reqCh, resCh chan string) {
-	conn, err := ln.Accept()
-	if err != nil {
-		return
-	}
-	defer conn.Close()
+	var conn net.Conn
+	var err error
 
 	go func() {
 		for msg := range resCh {
@@ -47,16 +44,22 @@ func serverCycle(ln net.Listener, reqCh, resCh chan string) {
 		}
 	}()
 
-	reader := bufio.NewReader(conn)
-	var line string
-
 	for {
-		line, err = reader.ReadString('\n')
+		conn, err = ln.Accept()
 		if err != nil {
-			fmt.Println(err.Error())
-			return
+			panic(err.Error())
 		}
 
-		reqCh <- line
+		reader := bufio.NewReader(conn)
+		var line string
+
+		for {
+			line, err = reader.ReadString('\n')
+			if err != nil {
+				break
+			}
+
+			reqCh <- line
+		}
 	}
 }

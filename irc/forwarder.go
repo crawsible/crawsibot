@@ -9,6 +9,12 @@ type Forwarder struct {
 	PINGRecipients []PINGRecipient
 }
 
+func NewForwarder() *Forwarder {
+	return &Forwarder{
+		Decoder: &MessageCipher{},
+	}
+}
+
 type ReadStringer interface {
 	ReadString(delim byte) (line string, err error)
 }

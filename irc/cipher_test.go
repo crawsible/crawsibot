@@ -75,5 +75,15 @@ var _ = Describe("MessageCipher", func() {
 			str := cipher.Encode(msg)
 			Expect(str).To(Equal("SOMESMALLCMD #somechannel\r\n"))
 		})
+
+		It("does not add extra whitespace if FirstParams is not set", func() {
+			msg := &irc.Message{
+				Command: "SOMESMALLCMD",
+				Params:  "some-server",
+			}
+
+			str := cipher.Encode(msg)
+			Expect(str).To(Equal("SOMESMALLCMD :some-server\r\n"))
+		})
 	})
 })

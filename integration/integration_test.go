@@ -32,6 +32,13 @@ var _ = Describe("Integration", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
+	AfterEach(func() {
+		session.Terminate().Wait()
+		for i := 0; i < len(reqCh); i++ {
+			<-reqCh
+		}
+	})
+
 	AfterSuite(func() {
 		gexec.CleanupBuildArtifacts()
 	})
@@ -45,7 +52,7 @@ var _ = Describe("Integration", func() {
 		Eventually(reqCh).Should(Receive(Equal("CAP REQ :twitch.tv/membership\r\n")))
 	})
 
-	FIt("PONGs when it gets PINGed", func() {
+	It("PONGs when it gets PINGed", func() {
 		Eventually(reqCh).Should(Receive(Equal("CAP REQ :twitch.tv/membership\r\n")))
 		resCh <- "PING :tmi.twitch.tv\r\n"
 		Eventually(reqCh).Should(Receive(Equal("PONG :tmi.twitch.tv\r\n")))

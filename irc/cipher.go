@@ -1,6 +1,7 @@
 package irc
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"regexp"
@@ -43,12 +44,17 @@ func (c *MessageCipher) Decode(msgStr string) (*Message, error) {
 }
 
 func (c *MessageCipher) Encode(msg *Message) string {
-	params := ""
+	buf := &bytes.Buffer{}
+	if msg.FirstParams != "" {
+		buf.WriteString(" ")
+		buf.WriteString(msg.FirstParams)
+	}
 	if msg.Params != "" {
-		params = fmt.Sprintf(" :%s", msg.Params)
+		buf.WriteString(" :")
+		buf.WriteString(msg.Params)
 	}
 
-	return fmt.Sprintf("%s %s%s\r\n", msg.Command, msg.FirstParams, params)
+	return fmt.Sprintf("%s%s\r\n", msg.Command, buf.String())
 }
 
 func getNamedMatch(match []string) map[string]string {

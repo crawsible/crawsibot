@@ -18,37 +18,43 @@ type IRCSender interface {
 }
 
 type IRCForwarder interface {
-	EnrollForPING(PINGRecipient)
 	StartForwarding(ReadStringer)
+	EnrollForPING(PINGRecipient)
 }
 
 type IRCPonger interface {
-	RcvPING(nick, fprms, prms string)
+	StartPonging(msgr Messenger)
+}
+
+type Messenger interface {
+	EnrollForPING(PINGRecipient)
+	Send(cmd, fprms, prms string)
 }
 
 type IRC struct {
 	Dialer    Dialer
 	Sender    IRCSender
 	Forwarder IRCForwarder
-	Ponger    PINGRecipient
-
-	sendCh chan *Message
+	Ponger    IRCPonger
 }
 
 func New() *IRC {
 	return &IRC{
 		Dialer:    &net.Dialer{},
 		Sender:    NewSender(),
-		Forwarder: &Forwarder{},
-		//Ponger:    &Ponger{},
+		Forwarder: NewForwarder(),
+		Ponger:    &Ponger{},
 	}
 }
 
 func (i *IRC) Connect(cfg *config.Config) {
-	conn, _ := i.Dialer.Dial("tcp", cfg.Address)
+	conn, err := i.Dialer.Dial("tcp", cfg.Address)
+	if err != nil {
+		panic(err.Error())
+	}
 
 	i.Sender.StartSending(conn)
-	i.Forwarder.EnrollForPING(i.Ponger)
+	i.Ponger.StartPonging(i)
 	i.Forwarder.StartForwarding(bufio.NewReader(conn))
 
 	i.Sender.Send("PASS", cfg.Password, "")
@@ -58,4 +64,8 @@ func (i *IRC) Connect(cfg *config.Config) {
 
 func (i *IRC) Send(cmd, fprms, prms string) {
 	i.Sender.Send(cmd, fprms, prms)
+}
+
+func (i *IRC) EnrollForPING(rcp PINGRecipient) {
+	i.Forwarder.EnrollForPING(rcp)
 }
