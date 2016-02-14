@@ -30,7 +30,7 @@ var _ = Describe("Ponger", func() {
 
 		It("enrolls itself for PINGs with the messenger", func() {
 			Expect(fakeMsgr.EnrollForPINGCalls).To(Equal(1))
-			Expect(fakeMsgr.EnrollForPINGRecipient).To(Equal(ponger))
+			Expect(fakeMsgr.EnrollForPINGRcvr).To(Equal(ponger))
 		})
 
 		Context("once ponging has started", func() {

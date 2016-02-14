@@ -8,7 +8,7 @@ type FakeForwarder struct {
 	StartForwardingDcdr   irc.Decoder
 
 	EnrollForPINGCalls     int
-	EnrollForPINGRecipient irc.PINGRecipient
+	EnrollForPINGRcvr irc.PINGRcvr
 }
 
 func (f *FakeForwarder) StartForwarding(rsr irc.ReadStringer, dcdr irc.Decoder) {
@@ -17,7 +17,7 @@ func (f *FakeForwarder) StartForwarding(rsr irc.ReadStringer, dcdr irc.Decoder) 
 	f.StartForwardingDcdr = dcdr
 }
 
-func (f *FakeForwarder) EnrollForPING(rcp irc.PINGRecipient) {
+func (f *FakeForwarder) EnrollForPING(rcp irc.PINGRcvr) {
 	f.EnrollForPINGCalls += 1
-	f.EnrollForPINGRecipient = rcp
+	f.EnrollForPINGRcvr = rcp
 }

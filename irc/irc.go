@@ -24,7 +24,7 @@ type Sender interface {
 
 type Forwarder interface {
 	StartForwarding(rsr ReadStringer, dcdr Decoder)
-	EnrollForPING(PINGRecipient)
+	EnrollForPING(PINGRcvr)
 }
 
 type Ponger interface {
@@ -32,7 +32,7 @@ type Ponger interface {
 }
 
 type Messenger interface {
-	EnrollForPING(PINGRecipient)
+	EnrollForPING(PINGRcvr)
 	Send(cmd, fprms, prms string)
 }
 
@@ -73,6 +73,6 @@ func (i *IRC) Send(cmd, fprms, prms string) {
 	i.Sender.Send(cmd, fprms, prms)
 }
 
-func (i *IRC) EnrollForPING(rcp PINGRecipient) {
+func (i *IRC) EnrollForPING(rcp PINGRcvr) {
 	i.Forwarder.EnrollForPING(rcp)
 }

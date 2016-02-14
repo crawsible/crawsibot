@@ -1,13 +1,13 @@
 package mocks
 
-type FakeRecipient struct {
+type FakeReceiver struct {
 	RcvPINGNick  string
 	RcvPINGFprms string
 	RcvPINGPrms  string
 	rcvPINGCalls int
 }
 
-func (r *FakeRecipient) RcvPING(nick, fprms, prms string) {
+func (r *FakeReceiver) RcvPING(nick, fprms, prms string) {
 	r.rcvPINGCalls += 1
 
 	r.RcvPINGNick = nick
@@ -15,6 +15,6 @@ func (r *FakeRecipient) RcvPING(nick, fprms, prms string) {
 	r.RcvPINGPrms = prms
 }
 
-func (r *FakeRecipient) RcvPINGCalls() int {
+func (r *FakeReceiver) RcvPINGCalls() int {
 	return r.rcvPINGCalls
 }

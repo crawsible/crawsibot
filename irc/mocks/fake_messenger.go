@@ -4,15 +4,15 @@ import "github.com/crawsible/crawsibot/irc"
 
 type FakeMessenger struct {
 	EnrollForPINGCalls     int
-	EnrollForPINGRecipient irc.PINGRecipient
+	EnrollForPINGRcvr irc.PINGRcvr
 
 	SendArgs  [][]string
 	sendCalls int
 }
 
-func (m *FakeMessenger) EnrollForPING(rcp irc.PINGRecipient) {
+func (m *FakeMessenger) EnrollForPING(rcp irc.PINGRcvr) {
 	m.EnrollForPINGCalls += 1
-	m.EnrollForPINGRecipient = rcp
+	m.EnrollForPINGRcvr = rcp
 }
 
 func (m *FakeMessenger) Send(cmd, fprms, prms string) {

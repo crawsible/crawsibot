@@ -112,12 +112,12 @@ var _ = Describe("IRC", func() {
 
 		Describe("#EnrollForPING", func() {
 			It("calls through to its Forwarder", func() {
-				fakeRecipient := &mocks.FakeRecipient{}
-				client.EnrollForPING(fakeRecipient)
+				fakeReceiver := &mocks.FakeReceiver{}
+				client.EnrollForPING(fakeReceiver)
 
 				Expect(fakeForwarder.EnrollForPINGCalls).To(Equal(1))
-				Expect(fakeForwarder.EnrollForPINGRecipient).To(Equal(fakeRecipient))
-				Expect(fakeForwarder.EnrollForPINGRecipient).To(Equal(fakeRecipient))
+				Expect(fakeForwarder.EnrollForPINGRcvr).To(Equal(fakeReceiver))
+				Expect(fakeForwarder.EnrollForPINGRcvr).To(Equal(fakeReceiver))
 			})
 		})
 
