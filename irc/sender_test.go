@@ -20,14 +20,12 @@ var _ = Describe("Sender", func() {
 		fakeWriter = &mocks.FakeWriter{}
 		fakeCipher = &mocks.FakeCipher{}
 
-		sender = &irc.Sender{
-			Encoder: fakeCipher,
-		}
+		sender = &irc.Sender{}
 	})
 
 	Describe("#StartSending", func() {
 		BeforeEach(func() {
-			sender.StartSending(fakeWriter)
+			sender.StartSending(fakeWriter, fakeCipher)
 			Eventually(sender.SendCh).ShouldNot(BeNil())
 		})
 

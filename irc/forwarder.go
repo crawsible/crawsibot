@@ -1,36 +1,29 @@
 package irc
 
-type Decoder interface {
-	Decode(msgStr string) (*Message, error)
-}
-
 type Forwarder struct {
-	Decoder        Decoder
 	PINGRecipients []PINGRecipient
-}
-
-func NewForwarder() *Forwarder {
-	return &Forwarder{
-		Decoder: &MessageCipher{},
-	}
 }
 
 type ReadStringer interface {
 	ReadString(delim byte) (line string, err error)
 }
 
-func (f *Forwarder) StartForwarding(rsr ReadStringer) {
-	go f.forward(rsr)
+type Decoder interface {
+	Decode(msgStr string) (*Message, error)
 }
 
-func (f *Forwarder) forward(rsr ReadStringer) {
+func (f *Forwarder) StartForwarding(rsr ReadStringer, dcdr Decoder) {
+	go f.forward(rsr, dcdr)
+}
+
+func (f *Forwarder) forward(rsr ReadStringer, dcdr Decoder) {
 	for {
 		msgStr, ok := rsr.ReadString('\n')
 		if ok != nil {
 			return
 		}
 
-		msg, _ := f.Decoder.Decode(msgStr)
+		msg, _ := dcdr.Decode(msgStr)
 		for _, rcp := range f.PINGRecipients {
 			rcp.RcvPING(
 				msg.NickOrSrvname,

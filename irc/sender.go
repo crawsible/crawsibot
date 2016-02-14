@@ -11,17 +11,11 @@ type Sender struct {
 	SendCh  chan *Message
 }
 
-func NewSender() *Sender {
-	return &Sender{
-		Encoder: &MessageCipher{},
-	}
-}
-
-func (s *Sender) StartSending(wtr io.Writer) {
+func (s *Sender) StartSending(wtr io.Writer, ecdr Encoder) {
 	s.SendCh = make(chan *Message, 90)
 	go func() {
 		for msg := range s.SendCh {
-			wtr.Write([]byte(s.Encoder.Encode(msg)))
+			wtr.Write([]byte(ecdr.Encode(msg)))
 		}
 	}()
 }

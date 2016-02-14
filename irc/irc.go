@@ -12,13 +12,18 @@ type Dialer interface {
 	Dial(network, address string) (net.Conn, error)
 }
 
+type Cipher interface {
+	Encoder
+	Decoder
+}
+
 type IRCSender interface {
-	StartSending(wtr io.Writer)
+	StartSending(wtr io.Writer, ecdr Encoder)
 	Send(cmd, fprms, prms string)
 }
 
 type IRCForwarder interface {
-	StartForwarding(ReadStringer)
+	StartForwarding(rsr ReadStringer, dcdr Decoder)
 	EnrollForPING(PINGRecipient)
 }
 
@@ -33,6 +38,7 @@ type Messenger interface {
 
 type IRC struct {
 	Dialer    Dialer
+	Cipher    Cipher
 	Sender    IRCSender
 	Forwarder IRCForwarder
 	Ponger    IRCPonger
@@ -41,8 +47,9 @@ type IRC struct {
 func New() *IRC {
 	return &IRC{
 		Dialer:    &net.Dialer{},
-		Sender:    NewSender(),
-		Forwarder: NewForwarder(),
+		Cipher:    &MessageCipher{},
+		Sender:    &Sender{},
+		Forwarder: &Forwarder{},
 		Ponger:    &Ponger{},
 	}
 }
@@ -53,9 +60,9 @@ func (i *IRC) Connect(cfg *config.Config) {
 		panic(err.Error())
 	}
 
-	i.Sender.StartSending(conn)
+	i.Sender.StartSending(conn, i.Cipher)
 	i.Ponger.StartPonging(i)
-	i.Forwarder.StartForwarding(bufio.NewReader(conn))
+	i.Forwarder.StartForwarding(bufio.NewReader(conn), i.Cipher)
 
 	i.Sender.Send("PASS", cfg.Password, "")
 	i.Sender.Send("NICK", cfg.Nick, "")

@@ -18,16 +18,18 @@ var _ = Describe("IRC", func() {
 			c := irc.New()
 
 			Expect(c.Dialer).To(Equal(&net.Dialer{}))
-			Expect(c.Sender).To(Equal(irc.NewSender()))
-			Expect(c.Forwarder).To(Equal(irc.NewForwarder()))
+			Expect(c.Cipher).To(Equal(&irc.MessageCipher{}))
+			Expect(c.Sender).To(Equal(&irc.Sender{}))
+			Expect(c.Forwarder).To(Equal(&irc.Forwarder{}))
 			Expect(c.Ponger).To(Equal(&irc.Ponger{}))
 		})
 	})
 
 	Context("with an IRC instance", func() {
 		var (
-			fakeDialer    *mocks.FakeDialer
 			fakeConn      *mocks.FakeConn
+			fakeDialer    *mocks.FakeDialer
+			fakeCipher    *mocks.FakeCipher
 			fakeSender    *mocks.FakeSender
 			fakeForwarder *mocks.FakeForwarder
 			fakePonger    *mocks.FakePonger
@@ -39,12 +41,14 @@ var _ = Describe("IRC", func() {
 		BeforeEach(func() {
 			fakeConn = &mocks.FakeConn{}
 			fakeDialer = &mocks.FakeDialer{DialReturnConn: fakeConn}
+			fakeCipher = &mocks.FakeCipher{}
 			fakeSender = &mocks.FakeSender{}
 			fakeForwarder = &mocks.FakeForwarder{}
 			fakePonger = &mocks.FakePonger{FakeForwarder: fakeForwarder}
 
 			client = &irc.IRC{
 				Dialer:    fakeDialer,
+				Cipher:    fakeCipher,
 				Sender:    fakeSender,
 				Forwarder: fakeForwarder,
 				Ponger:    fakePonger,
@@ -67,11 +71,12 @@ var _ = Describe("IRC", func() {
 				Expect(fakeDialer.DialAddress).To(Equal("some.address:12345"))
 			})
 
-			It("initiates the Sender with the returned Conn", func() {
+			It("starts the Sender with its cipher and returned Conn", func() {
 				client.Connect(cfg)
 
 				Expect(fakeSender.StartSendingCalls).To(Equal(1))
 				Expect(fakeSender.StartSendingWriter).To(Equal(fakeConn))
+				Expect(fakeSender.StartSendingEcdr).To(Equal(fakeCipher))
 			})
 
 			It("starts its Ponger with itself as the API argument", func() {
@@ -82,12 +87,13 @@ var _ = Describe("IRC", func() {
 				Expect(fakePonger.ForwarderHadStarted).To(BeFalse())
 			})
 
-			It("initiates the Forwarder with a new Reader for the Conn", func() {
+			It("starts the Forwarder with the cipher and a Conn Reader", func() {
 				client.Connect(cfg)
 
 				Expect(fakeForwarder.StartForwardingCalls).To(Equal(1))
 				fakeReader := bufio.NewReader(fakeConn)
 				Expect(fakeForwarder.StartForwardingReader).To(Equal(fakeReader))
+				Expect(fakeForwarder.StartForwardingDcdr).To(Equal(fakeCipher))
 			})
 
 			It("sends login messages to the server via the Sender", func() {

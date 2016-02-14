@@ -10,18 +10,17 @@ import (
 var _ = Describe("Forwarder", func() {
 	var (
 		fakeRecipient *mocks.FakeRecipient
-		fakeCipher    *mocks.FakeCipher
 
 		forwarder *irc.Forwarder
 	)
 
 	BeforeEach(func() {
 		fakeRecipient = &mocks.FakeRecipient{}
+		forwarder = &irc.Forwarder{}
 	})
 
 	Describe("#EnrollForPING", func() {
 		BeforeEach(func() {
-			forwarder = &irc.Forwarder{}
 			forwarder.EnrollForPING(fakeRecipient)
 		})
 
@@ -37,17 +36,16 @@ var _ = Describe("Forwarder", func() {
 	})
 
 	Describe("#StartForwarding", func() {
-		var fakeReader *mocks.FakeReader
-		var rdStrCh chan string
+		var (
+			fakeReader *mocks.FakeReader
+			rdStrCh    chan string
+			fakeCipher *mocks.FakeCipher
+		)
 
 		BeforeEach(func() {
 			rdStrCh = make(chan string, 1)
 			fakeReader = &mocks.FakeReader{RdStrCh: rdStrCh}
 			fakeCipher = &mocks.FakeCipher{}
-
-			forwarder = &irc.Forwarder{
-				Decoder: fakeCipher,
-			}
 		})
 
 		AfterEach(func() {
@@ -56,7 +54,7 @@ var _ = Describe("Forwarder", func() {
 
 		It("reads from the provided ReadStringer, splitting on \\n", func() {
 			rdStrCh <- ""
-			forwarder.StartForwarding(fakeReader)
+			forwarder.StartForwarding(fakeReader, fakeCipher)
 
 			Eventually(fakeReader.ReadStringCalls).Should(Equal(1))
 			Expect(fakeReader.ReadStringByte).Should(Equal(byte('\n')))
@@ -64,7 +62,7 @@ var _ = Describe("Forwarder", func() {
 
 		It("uses its cipher to decode the read messages", func() {
 			rdStrCh <- "PING :some.server\r\n"
-			forwarder.StartForwarding(fakeReader)
+			forwarder.StartForwarding(fakeReader, fakeCipher)
 
 			Eventually(fakeCipher.DecodeCalls).Should(Equal(1))
 			Expect(fakeCipher.DecodeStrings[0]).To(Equal("PING :some.server\r\n"))
@@ -83,7 +81,7 @@ var _ = Describe("Forwarder", func() {
 
 			It("calls RcvPING with decoded message's field values on recipients", func() {
 				rdStrCh <- ""
-				forwarder.StartForwarding(fakeReader)
+				forwarder.StartForwarding(fakeReader, fakeCipher)
 
 				Eventually(fakeRecipient.RcvPINGCalls).Should(Equal(1))
 				Expect(fakeRecipient.RcvPINGNick).To(BeZero())
@@ -95,7 +93,7 @@ var _ = Describe("Forwarder", func() {
 				secondRecipient := &mocks.FakeRecipient{}
 				forwarder.PINGRecipients = append(forwarder.PINGRecipients, secondRecipient)
 				rdStrCh <- ""
-				forwarder.StartForwarding(fakeReader)
+				forwarder.StartForwarding(fakeReader, fakeCipher)
 
 				Eventually(fakeRecipient.RcvPINGCalls).Should(Equal(1))
 				Expect(fakeRecipient.RcvPINGNick).To(BeZero())
@@ -109,7 +107,7 @@ var _ = Describe("Forwarder", func() {
 			})
 
 			It("handles multiple messages concurrently", func() {
-				forwarder.StartForwarding(fakeReader)
+				forwarder.StartForwarding(fakeReader, fakeCipher)
 				rdStrCh <- ""
 				rdStrCh <- ""
 

@@ -9,15 +9,17 @@ import (
 type FakeSender struct {
 	StartSendingCalls  int
 	StartSendingWriter io.Writer
+	StartSendingEcdr   irc.Encoder
 	SendCh             chan *irc.Message
 
 	SendCalls int
 	SendArgs  [][]string
 }
 
-func (s *FakeSender) StartSending(wtr io.Writer) {
+func (s *FakeSender) StartSending(wtr io.Writer, ecdr irc.Encoder) {
 	s.StartSendingCalls += 1
 	s.StartSendingWriter = wtr
+	s.StartSendingEcdr = ecdr
 }
 
 func (s *FakeSender) Send(cmd, fprms, prms string) {
