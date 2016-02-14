@@ -29,15 +29,18 @@ var _ = Describe("Forwarder", func() {
 		})
 
 		Context("when called with 'PING'", func() {
-			BeforeEach(func() {
-				forwarder.EnrollForMsgs(fakeReceiver, "PING")
-			})
-
 			It("adds the argument to its list of PINGRecipients", func() {
+				forwarder.EnrollForMsgs(fakeReceiver, "PING")
 				Expect(forwarder.PINGRcvrs).To(ContainElement(fakeReceiver))
 			})
 		})
 
+		Context("when called with 'RPL_ENDOFMOTD'", func() {
+			It("adds the argument to its list of PINGRecipients", func() {
+				forwarder.EnrollForMsgs(fakeReceiver, "RPL_ENDOFMOTD")
+				Expect(forwarder.RPL_ENDOFMOTDRcvrs).To(ContainElement(fakeReceiver))
+			})
+		})
 	})
 
 	Describe("#StartForwarding", func() {
@@ -81,7 +84,7 @@ var _ = Describe("Forwarder", func() {
 					Command: "PING",
 					Params:  "some.server",
 				}
-				fakeCipher.DecodeMessages = []*irc.Message{msg}
+				fakeCipher.DecodeMessages = []*irc.Message{msg, msg}
 			})
 
 			It("calls RcvPING with decoded message's field values on recipients", func() {

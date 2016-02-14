@@ -6,7 +6,7 @@ type ServerPonger struct {
 
 func (p *ServerPonger) StartPonging(msgr Messenger) {
 	p.PingCh = make(chan string)
-	msgr.EnrollForPING(p)
+	msgr.EnrollForMsgs(p, "PING")
 
 	go func() {
 		for server := range p.PingCh {

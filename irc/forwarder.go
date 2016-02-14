@@ -1,7 +1,8 @@
 package irc
 
 type MessageForwarder struct {
-	PINGRcvrs []MsgRcvr
+	PINGRcvrs          []MsgRcvr
+	RPL_ENDOFMOTDRcvrs []MsgRcvr
 }
 
 type ReadStringer interface {
@@ -24,7 +25,18 @@ func (f *MessageForwarder) forward(rsr ReadStringer, dcdr Decoder) {
 		}
 
 		msg, _ := dcdr.Decode(msgStr)
-		for _, rcp := range f.PINGRcvrs {
+
+		var rcvrs []MsgRcvr
+		switch msg.Command {
+		case "PING":
+			rcvrs = f.PINGRcvrs
+		case "RPL_ENDOFMOTD":
+			rcvrs = f.RPL_ENDOFMOTDRcvrs
+		default:
+			rcvrs = []MsgRcvr{}
+		}
+
+		for _, rcp := range rcvrs {
 			rcp.RcvMsg(
 				msg.NickOrSrvname,
 				msg.FirstParams,
@@ -39,11 +51,20 @@ type MsgRcvr interface {
 }
 
 func (f *MessageForwarder) EnrollForMsgs(mrc MsgRcvr, cmd string) {
-	for _, addedMrc := range f.PINGRcvrs {
+	switch cmd {
+	case "PING":
+		f.PINGRcvrs = appendIfNew(f.PINGRcvrs, mrc)
+	case "RPL_ENDOFMOTD":
+		f.RPL_ENDOFMOTDRcvrs = appendIfNew(f.RPL_ENDOFMOTDRcvrs, mrc)
+	}
+}
+
+func appendIfNew(mrcs []MsgRcvr, mrc MsgRcvr) []MsgRcvr {
+	for _, addedMrc := range mrcs {
 		if mrc == addedMrc {
-			return
+			return mrcs
 		}
 	}
 
-	f.PINGRcvrs = append(f.PINGRcvrs, mrc)
+	return append(mrcs, mrc)
 }
