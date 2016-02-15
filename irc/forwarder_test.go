@@ -10,36 +10,26 @@ import (
 var _ = Describe("Forwarder", func() {
 	var (
 		fakeReceiver *mocks.FakeReceiver
-
-		forwarder *irc.MessageForwarder
+		forwarder    *irc.MessageForwarder
 	)
 
 	BeforeEach(func() {
 		fakeReceiver = &mocks.FakeReceiver{}
-		forwarder = &irc.MessageForwarder{}
+		forwarder = &irc.MessageForwarder{make(map[string][]irc.MsgRcvr)}
 	})
 
 	Describe("#EnrollForMsgs", func() {
+		It("adds the receiver to its receiver list for the given command", func() {
+			forwarder.EnrollForMsgs(fakeReceiver, "SOMECMD")
+			Expect(forwarder.MsgRcvrs["SOMECMD"]).To(ContainElement(fakeReceiver))
+		})
+
 		It("is idempotent", func() {
-			forwarder.EnrollForMsgs(fakeReceiver, "PING")
-			receivers := forwarder.PINGRcvrs
+			forwarder.EnrollForMsgs(fakeReceiver, "SOMECMD")
+			receivers := forwarder.MsgRcvrs["SOMECMD"]
 
-			forwarder.EnrollForMsgs(fakeReceiver, "PING")
-			Expect(forwarder.PINGRcvrs).To(Equal(receivers))
-		})
-
-		Context("when called with 'PING'", func() {
-			It("adds the argument to its list of PINGRecipients", func() {
-				forwarder.EnrollForMsgs(fakeReceiver, "PING")
-				Expect(forwarder.PINGRcvrs).To(ContainElement(fakeReceiver))
-			})
-		})
-
-		Context("when called with 'RPL_ENDOFMOTD'", func() {
-			It("adds the argument to its list of PINGRecipients", func() {
-				forwarder.EnrollForMsgs(fakeReceiver, "RPL_ENDOFMOTD")
-				Expect(forwarder.RPL_ENDOFMOTDRcvrs).To(ContainElement(fakeReceiver))
-			})
+			forwarder.EnrollForMsgs(fakeReceiver, "SOMECMD")
+			Expect(forwarder.MsgRcvrs["SOMECMD"]).To(Equal(receivers))
 		})
 	})
 
@@ -69,25 +59,25 @@ var _ = Describe("Forwarder", func() {
 		})
 
 		It("uses its cipher to decode the read messages", func() {
-			rdStrCh <- "PING :some.server\r\n"
+			rdStrCh <- "SOMECMD :some.server\r\n"
 			forwarder.StartForwarding(fakeReader, fakeCipher)
 
 			Eventually(fakeCipher.DecodeCalls).Should(Equal(1))
-			Expect(fakeCipher.DecodeStrings[0]).To(Equal("PING :some.server\r\n"))
+			Expect(fakeCipher.DecodeStrings[0]).To(Equal("SOMECMD :some.server\r\n"))
 		})
 
 		Context("with recipients", func() {
 			var msg *irc.Message
 			BeforeEach(func() {
-				forwarder.PINGRcvrs = []irc.MsgRcvr{fakeReceiver}
+				forwarder.MsgRcvrs["SOMECMD"] = []irc.MsgRcvr{fakeReceiver}
 				msg = &irc.Message{
-					Command: "PING",
+					Command: "SOMECMD",
 					Params:  "some.server",
 				}
 				fakeCipher.DecodeMessages = []*irc.Message{msg, msg}
 			})
 
-			It("calls RcvPING with decoded message's field values on recipients", func() {
+			It("calls RcvMsg with decoded message's field values on recipients", func() {
 				rdStrCh <- ""
 				forwarder.StartForwarding(fakeReader, fakeCipher)
 
@@ -99,7 +89,7 @@ var _ = Describe("Forwarder", func() {
 
 			It("works with multiple recipients", func() {
 				secondRecipient := &mocks.FakeReceiver{}
-				forwarder.PINGRcvrs = append(forwarder.PINGRcvrs, secondRecipient)
+				forwarder.MsgRcvrs["SOMECMD"] = append(forwarder.MsgRcvrs["SOMECMD"], secondRecipient)
 				rdStrCh <- ""
 				forwarder.StartForwarding(fakeReader, fakeCipher)
 

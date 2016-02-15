@@ -49,7 +49,7 @@ func New() *IRC {
 		Dialer:    &net.Dialer{},
 		Cipher:    &MessageCipher{},
 		Sender:    &MessageSender{},
-		Forwarder: &MessageForwarder{},
+		Forwarder: &MessageForwarder{make(map[string][]MsgRcvr)},
 		Ponger:    &ServerPonger{},
 	}
 }
