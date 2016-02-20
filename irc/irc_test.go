@@ -13,7 +13,7 @@ import (
 )
 
 var _ = Describe("IRC", func() {
-	Describe("#New", func() {
+	Describe(".New", func() {
 		It("returns an IRC client with default dependencies injected", func() {
 			c := irc.New()
 
