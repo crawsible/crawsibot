@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/crawsible/crawsibot/config"
+	"github.com/crawsible/crawsibot/eventinterp"
 	"github.com/crawsible/crawsibot/irc"
 )
 
