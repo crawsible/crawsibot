@@ -1,9 +1,28 @@
 package eventinterp
 
-type LoginAnalyst struct{}
-
-func (l *LoginAnalyst) BeginInterpreting(fwdr Forwarder) {
-	fwdr.EnrollForMsgs(l, "RPL_ENDOFMOTD")
+type LoginRcvr interface {
+	LoggedIn()
 }
 
-func (l *LoginAnalyst) RcvMsg(nick, fprms, prms string) {}
+type LoginAnalyst struct {
+	EventCh    chan struct{}
+	LoginRcvrs []LoginRcvr
+}
+
+func (l *LoginAnalyst) BeginInterpreting(fwdr Forwarder) {
+	l.EventCh = make(chan struct{}, 1)
+	fwdr.EnrollForMsgs(l, "RPL_ENDOFMOTD")
+
+	go l.listenForLogin()
+}
+
+func (l *LoginAnalyst) listenForLogin() {
+	<-l.EventCh
+	for _, rcvr := range l.LoginRcvrs {
+		rcvr.LoggedIn()
+	}
+}
+
+func (l *LoginAnalyst) RcvMsg(n, f, p string) {
+	l.EventCh <- struct{}{}
+}
