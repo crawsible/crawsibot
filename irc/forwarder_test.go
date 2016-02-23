@@ -9,12 +9,12 @@ import (
 
 var _ = Describe("Forwarder", func() {
 	var (
-		fakeReceiver *mocks.FakeReceiver
+		fakeReceiver *mocks.FakeMsgRcvr
 		forwarder    *irc.MessageForwarder
 	)
 
 	BeforeEach(func() {
-		fakeReceiver = &mocks.FakeReceiver{}
+		fakeReceiver = &mocks.FakeMsgRcvr{}
 		forwarder = &irc.MessageForwarder{make(map[string][]irc.MsgRcvr)}
 	})
 
@@ -88,7 +88,7 @@ var _ = Describe("Forwarder", func() {
 			})
 
 			It("works with multiple recipients", func() {
-				secondRecipient := &mocks.FakeReceiver{}
+				secondRecipient := &mocks.FakeMsgRcvr{}
 				forwarder.MsgRcvrs["SOMECMD"] = append(forwarder.MsgRcvrs["SOMECMD"], secondRecipient)
 				rdStrCh <- ""
 				forwarder.StartForwarding(fakeReader, fakeCipher)

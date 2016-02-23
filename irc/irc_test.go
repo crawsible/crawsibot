@@ -112,7 +112,7 @@ var _ = Describe("IRC", func() {
 
 		Describe("#EnrollForMsgs", func() {
 			It("calls through to its Forwarder", func() {
-				fakeReceiver := &mocks.FakeReceiver{}
+				fakeReceiver := &mocks.FakeMsgRcvr{}
 				client.EnrollForMsgs(fakeReceiver, "SOMECMD")
 
 				Expect(fakeForwarder.EnrollForMsgCalls).To(Equal(1))
