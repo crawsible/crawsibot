@@ -6,14 +6,22 @@ type Forwarder interface {
 	EnrollForMsgs(mrc irc.MsgRcvr, cmd string)
 }
 
-type EventInterp struct{}
+type Analyst interface {
+	BeginInterpreting(fwdr Forwarder)
+}
+
+type EventInterp struct {
+	LoginAnalyst Analyst
+}
 
 func New() *EventInterp {
-	return &EventInterp{}
+	return &EventInterp{
+		LoginAnalyst: &LoginAnalyst{},
+	}
 }
 
 func (e *EventInterp) BeginInterpreting(fwdr Forwarder) {
-	fwdr.EnrollForMsgs(e, "RPL_ENDOFMOTD")
+	e.LoginAnalyst.BeginInterpreting(fwdr)
 }
 
 func (e *EventInterp) RcvMsg(nick, fprms, prms string) {}
