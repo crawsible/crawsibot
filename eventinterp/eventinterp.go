@@ -23,5 +23,3 @@ func New() *EventInterp {
 func (e *EventInterp) BeginInterpreting(fwdr Forwarder) {
 	e.LoginInterp.BeginInterpreting(fwdr)
 }
-
-func (e *EventInterp) RcvMsg(nick, fprms, prms string) {}
