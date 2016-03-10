@@ -4,25 +4,25 @@ type LoginRcvr interface {
 	LoggedIn()
 }
 
-type LoginAnalyst struct {
+type LoginInterp struct {
 	EventCh    chan struct{}
 	LoginRcvrs []LoginRcvr
 }
 
-func (l *LoginAnalyst) BeginInterpreting(fwdr Forwarder) {
+func (l *LoginInterp) BeginInterpreting(fwdr Forwarder) {
 	l.EventCh = make(chan struct{}, 1)
 	fwdr.EnrollForMsgs(l, "RPL_ENDOFMOTD")
 
 	go l.listenForLogin()
 }
 
-func (l *LoginAnalyst) listenForLogin() {
+func (l *LoginInterp) listenForLogin() {
 	<-l.EventCh
 	for _, rcvr := range l.LoginRcvrs {
 		rcvr.LoggedIn()
 	}
 }
 
-func (l *LoginAnalyst) RcvMsg(n, f, p string) {
+func (l *LoginInterp) RcvMsg(n, f, p string) {
 	l.EventCh <- struct{}{}
 }

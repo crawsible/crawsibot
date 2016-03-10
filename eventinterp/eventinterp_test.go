@@ -12,30 +12,30 @@ var _ = Describe("EventInterp", func() {
 	Describe(".New", func() {
 		It("returns an eventinterp with default dependencies injected", func() {
 			c := eventinterp.New()
-			Expect(c.LoginAnalyst).To(Equal(&eventinterp.LoginAnalyst{}))
+			Expect(c.LoginInterp).To(Equal(&eventinterp.LoginInterp{}))
 		})
 	})
 
 	Describe("#BeginInterpreting", func() {
 		var (
-			fakeClient  *mocks.FakeClient
-			fakeAnalyst *mocks.FakeAnalyst
-			controller  *eventinterp.EventInterp
+			fakeClient *mocks.FakeClient
+			fakeInterp *mocks.FakeInterp
+			controller *eventinterp.EventInterp
 		)
 
 		BeforeEach(func() {
 			fakeClient = &mocks.FakeClient{}
-			fakeAnalyst = &mocks.FakeAnalyst{}
+			fakeInterp = &mocks.FakeInterp{}
 
 			controller = &eventinterp.EventInterp{
-				LoginAnalyst: fakeAnalyst,
+				LoginInterp: fakeInterp,
 			}
 		})
 
-		It("tells its LoginAnalyst to begin interpreting", func() {
+		It("tells its LoginInterp to begin interpreting", func() {
 			controller.BeginInterpreting(fakeClient)
-			Expect(fakeAnalyst.BeginInterpretingCalls).To(Equal(1))
-			Expect(fakeAnalyst.BeginInterpretingClient).To(Equal(fakeClient))
+			Expect(fakeInterp.BeginInterpretingCalls).To(Equal(1))
+			Expect(fakeInterp.BeginInterpretingClient).To(Equal(fakeClient))
 		})
 	})
 })

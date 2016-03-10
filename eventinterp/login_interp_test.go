@@ -8,29 +8,29 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("LoginAnalyst", func() {
-	var analyst *eventinterp.LoginAnalyst
+var _ = Describe("LoginInterp", func() {
+	var interp *eventinterp.LoginInterp
 
 	Describe("#BeginInterpreting", func() {
 		var fakeClient *mocks.FakeClient
 
 		BeforeEach(func() {
 			fakeClient = &mocks.FakeClient{}
-			analyst = &eventinterp.LoginAnalyst{}
+			interp = &eventinterp.LoginInterp{}
 		})
 
 		JustBeforeEach(func() {
-			analyst.BeginInterpreting(fakeClient)
+			interp.BeginInterpreting(fakeClient)
 		})
 
 		It("instantiates its event channel with a buffer of 1", func() {
-			Expect(analyst.EventCh).NotTo(BeNil())
-			Expect(cap(analyst.EventCh)).To(Equal(1))
+			Expect(interp.EventCh).NotTo(BeNil())
+			Expect(cap(interp.EventCh)).To(Equal(1))
 		})
 
 		It("registers itself for RPL_ENDOFMOTD messages with the client", func() {
 			Expect(fakeClient.EnrollForMsgsCalls).To(Equal(1))
-			Expect(fakeClient.EnrollForMsgsRcvr).To(Equal(analyst))
+			Expect(fakeClient.EnrollForMsgsRcvr).To(Equal(interp))
 			Expect(fakeClient.EnrollForMsgsCmd).To(Equal("RPL_ENDOFMOTD"))
 		})
 
@@ -44,7 +44,7 @@ var _ = Describe("LoginAnalyst", func() {
 				fakeReceiver1 = &mocks.FakeInterpRcvr{}
 				fakeReceiver2 = &mocks.FakeInterpRcvr{}
 
-				analyst = &eventinterp.LoginAnalyst{
+				interp = &eventinterp.LoginInterp{
 					LoginRcvrs: []eventinterp.LoginRcvr{fakeReceiver1, fakeReceiver2},
 					EventCh:    make(chan struct{}, 1),
 				}
@@ -53,7 +53,7 @@ var _ = Describe("LoginAnalyst", func() {
 			It("invokes the 'LoggedIn' method of its registered InterpRcvrs", func() {
 				Eventually(fakeReceiver1.LoggedInCalls).ShouldNot(Equal(1))
 				Eventually(fakeReceiver2.LoggedInCalls).ShouldNot(Equal(1))
-				analyst.EventCh <- struct{}{}
+				interp.EventCh <- struct{}{}
 				Eventually(fakeReceiver1.LoggedInCalls).Should(Equal(1))
 				Eventually(fakeReceiver2.LoggedInCalls).Should(Equal(1))
 			})
@@ -62,12 +62,12 @@ var _ = Describe("LoginAnalyst", func() {
 
 	Describe("#RcvMsg", func() {
 		BeforeEach(func() {
-			analyst = &eventinterp.LoginAnalyst{EventCh: make(chan struct{}, 1)}
+			interp = &eventinterp.LoginInterp{EventCh: make(chan struct{}, 1)}
 		})
 
-		It("sends on the analyst's EventCh", func() {
-			analyst.RcvMsg("", "", "")
-			Eventually(analyst.EventCh).Should(Receive())
+		It("sends on the interp's EventCh", func() {
+			interp.RcvMsg("", "", "")
+			Eventually(interp.EventCh).Should(Receive())
 		})
 	})
 })
