@@ -11,6 +11,27 @@ import (
 var _ = Describe("LoginInterp", func() {
 	var interp *eventinterp.LoginInterp
 
+	Describe("#RegisterForInterp", func() {
+		var fakeReceiver1 *mocks.FakeInterpRcvr
+		var fakeReceiver2 *mocks.FakeInterpRcvr
+
+		BeforeEach(func() {
+			fakeReceiver1 = &mocks.FakeInterpRcvr{}
+			fakeReceiver2 = &mocks.FakeInterpRcvr{}
+			interp = &eventinterp.LoginInterp{}
+		})
+
+		It("adds the provided receiver to its list of LoginRcvrs", func() {
+			interp.RegisterForInterp(fakeReceiver1)
+			Expect(interp.LoginRcvrs).To(Equal([]eventinterp.LoginRcvr{fakeReceiver1}))
+			interp.RegisterForInterp(fakeReceiver2)
+			Expect(interp.LoginRcvrs).To(Equal([]eventinterp.LoginRcvr{
+				fakeReceiver1,
+				fakeReceiver2,
+			}))
+		})
+	})
+
 	Describe("#BeginInterpreting", func() {
 		var fakeClient *mocks.FakeClient
 

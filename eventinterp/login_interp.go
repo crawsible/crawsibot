@@ -9,6 +9,10 @@ type LoginInterp struct {
 	LoginRcvrs []LoginRcvr
 }
 
+func (l *LoginInterp) RegisterForInterp(rcvr LoginRcvr) {
+	l.LoginRcvrs = append(l.LoginRcvrs, rcvr)
+}
+
 func (l *LoginInterp) BeginInterpreting(fwdr Forwarder) {
 	l.EventCh = make(chan struct{}, 1)
 	fwdr.EnrollForMsgs(l, "RPL_ENDOFMOTD")
