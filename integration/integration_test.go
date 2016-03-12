@@ -58,7 +58,7 @@ var _ = Describe("Integration", func() {
 		Eventually(reqCh).Should(Receive(Equal("PONG :tmi.twitch.tv\r\n")))
 	})
 
-	XIt("joins the specified channel", func() {
+	It("joins the specified channel", func() {
 		Eventually(reqCh).Should(Receive(Equal("NICK some-username\r\n")))
 		Consistently(reqCh).ShouldNot(Receive(Equal("JOIN #somechannel\r\n")))
 

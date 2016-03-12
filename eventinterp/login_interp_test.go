@@ -67,7 +67,6 @@ var _ = Describe("LoginInterp", func() {
 
 				interp = &eventinterp.LoginInterp{
 					LoginRcvrs: []eventinterp.LoginRcvr{fakeReceiver1, fakeReceiver2},
-					EventCh:    make(chan struct{}, 1),
 				}
 			})
 
