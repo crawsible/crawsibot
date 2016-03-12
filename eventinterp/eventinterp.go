@@ -7,7 +7,7 @@ type Enroller interface {
 }
 
 type Interp interface {
-	BeginInterpreting(fwdr Enroller)
+	BeginInterpreting(enrl Enroller)
 	RegisterForInterp(rcvr LoginRcvr)
 }
 

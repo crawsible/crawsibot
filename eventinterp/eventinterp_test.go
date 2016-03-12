@@ -30,16 +30,16 @@ var _ = Describe("EventInterp", func() {
 		})
 
 		Describe("#BeginInterpreting", func() {
-			var fakeClient *mocks.FakeClient
+			var fakeEnroller *mocks.FakeEnroller
 
 			BeforeEach(func() {
-				fakeClient = &mocks.FakeClient{}
-				controller.BeginInterpreting(fakeClient)
+				fakeEnroller = &mocks.FakeEnroller{}
+				controller.BeginInterpreting(fakeEnroller)
 			})
 
 			It("tells its LoginInterp to begin interpreting", func() {
 				Expect(fakeInterp.BeginInterpretingCalls).To(Equal(1))
-				Expect(fakeInterp.BeginInterpretingClient).To(Equal(fakeClient))
+				Expect(fakeInterp.BeginInterpretingEnroller).To(Equal(fakeEnroller))
 			})
 		})
 

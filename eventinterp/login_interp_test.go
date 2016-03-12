@@ -33,15 +33,15 @@ var _ = Describe("LoginInterp", func() {
 	})
 
 	Describe("#BeginInterpreting", func() {
-		var fakeClient *mocks.FakeClient
+		var fakeEnroller *mocks.FakeEnroller
 
 		BeforeEach(func() {
-			fakeClient = &mocks.FakeClient{}
+			fakeEnroller = &mocks.FakeEnroller{}
 			interp = &eventinterp.LoginInterp{}
 		})
 
 		JustBeforeEach(func() {
-			interp.BeginInterpreting(fakeClient)
+			interp.BeginInterpreting(fakeEnroller)
 		})
 
 		It("instantiates its event channel with a buffer of 1", func() {
@@ -49,10 +49,10 @@ var _ = Describe("LoginInterp", func() {
 			Expect(cap(interp.EventCh)).To(Equal(1))
 		})
 
-		It("registers itself for RPL_ENDOFMOTD messages with the client", func() {
-			Expect(fakeClient.EnrollForMsgsCalls).To(Equal(1))
-			Expect(fakeClient.EnrollForMsgsRcvr).To(Equal(interp))
-			Expect(fakeClient.EnrollForMsgsCmd).To(Equal("RPL_ENDOFMOTD"))
+		It("enrolls itself for RPL_ENDOFMOTD messages with the enroller", func() {
+			Expect(fakeEnroller.EnrollForMsgsCalls).To(Equal(1))
+			Expect(fakeEnroller.EnrollForMsgsRcvr).To(Equal(interp))
+			Expect(fakeEnroller.EnrollForMsgsCmd).To(Equal("RPL_ENDOFMOTD"))
 		})
 
 		Context("when receiving a message over the event channel", func() {

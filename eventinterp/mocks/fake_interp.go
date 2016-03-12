@@ -3,8 +3,8 @@ package mocks
 import "github.com/crawsible/crawsibot/eventinterp"
 
 type FakeInterp struct {
-	BeginInterpretingCalls  int
-	BeginInterpretingClient eventinterp.Enroller
+	BeginInterpretingCalls    int
+	BeginInterpretingEnroller eventinterp.Enroller
 
 	RegisterForInterpCalls int
 	RegisterForInterpRcvr  eventinterp.LoginRcvr
@@ -12,7 +12,7 @@ type FakeInterp struct {
 
 func (a *FakeInterp) BeginInterpreting(enlr eventinterp.Enroller) {
 	a.BeginInterpretingCalls += 1
-	a.BeginInterpretingClient = enlr
+	a.BeginInterpretingEnroller = enlr
 }
 
 func (a *FakeInterp) RegisterForInterp(rcvr eventinterp.LoginRcvr) {
