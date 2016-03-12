@@ -8,6 +8,7 @@ type Enroller interface {
 
 type Interp interface {
 	BeginInterpreting(fwdr Enroller)
+	RegisterForInterp(rcvr LoginRcvr)
 }
 
 type EventInterp struct {
@@ -22,4 +23,8 @@ func New() *EventInterp {
 
 func (e *EventInterp) BeginInterpreting(enlr Enroller) {
 	e.LoginInterp.BeginInterpreting(enlr)
+}
+
+func (e *EventInterp) RegisterForLogin(rcvr LoginRcvr) {
+	e.LoginInterp.RegisterForInterp(rcvr)
 }

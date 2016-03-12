@@ -16,26 +16,45 @@ var _ = Describe("EventInterp", func() {
 		})
 	})
 
-	Describe("#BeginInterpreting", func() {
+	Context("with EventInterp instances", func() {
 		var (
-			fakeClient *mocks.FakeClient
 			fakeInterp *mocks.FakeInterp
 			controller *eventinterp.EventInterp
 		)
 
 		BeforeEach(func() {
-			fakeClient = &mocks.FakeClient{}
 			fakeInterp = &mocks.FakeInterp{}
-
 			controller = &eventinterp.EventInterp{
 				LoginInterp: fakeInterp,
 			}
 		})
 
-		It("tells its LoginInterp to begin interpreting", func() {
-			controller.BeginInterpreting(fakeClient)
-			Expect(fakeInterp.BeginInterpretingCalls).To(Equal(1))
-			Expect(fakeInterp.BeginInterpretingClient).To(Equal(fakeClient))
+		Describe("#BeginInterpreting", func() {
+			var fakeClient *mocks.FakeClient
+
+			BeforeEach(func() {
+				fakeClient = &mocks.FakeClient{}
+				controller.BeginInterpreting(fakeClient)
+			})
+
+			It("tells its LoginInterp to begin interpreting", func() {
+				Expect(fakeInterp.BeginInterpretingCalls).To(Equal(1))
+				Expect(fakeInterp.BeginInterpretingClient).To(Equal(fakeClient))
+			})
+		})
+
+		Describe("#RegisterForLogin", func() {
+			var fakeRcvr *mocks.FakeInterpRcvr
+
+			BeforeEach(func() {
+				fakeRcvr = &mocks.FakeInterpRcvr{}
+				controller.RegisterForLogin(fakeRcvr)
+			})
+
+			It("registers the provided LoginRcvr with its LoginInterp", func() {
+				Expect(fakeInterp.RegisterForInterpCalls).To(Equal(1))
+				Expect(fakeInterp.RegisterForInterpRcvr).To(Equal(fakeRcvr))
+			})
 		})
 	})
 })
