@@ -1,13 +1,20 @@
 package chatapp
 
-import "github.com/crawsible/crawsibot/eventinterp"
+import (
+	"github.com/crawsible/crawsibot/config"
+	"github.com/crawsible/crawsibot/eventinterp"
+)
 
 type Registrar interface {
 	RegisterForLogin(rcvr eventinterp.LoginRcvr)
 }
 
+type Sender interface {
+	Send(cmd, fprms, prms string)
+}
+
 type App interface {
-	BeginChatting(rgsr Registrar)
+	BeginChatting(rgsr Registrar, sndr Sender, cfg *config.Config)
 }
 
 type ChatApp struct {
@@ -20,6 +27,6 @@ func New() *ChatApp {
 	}
 }
 
-func (c *ChatApp) BeginChatting(rgsr Registrar) {
-	c.JoinChannelApp.BeginChatting(rgsr)
+func (c *ChatApp) BeginChatting(rgsr Registrar, sndr Sender, cfg *config.Config) {
+	c.JoinChannelApp.BeginChatting(rgsr, sndr, cfg)
 }
