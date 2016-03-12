@@ -13,9 +13,9 @@ func (l *LoginInterp) RegisterForInterp(rcvr LoginRcvr) {
 	l.LoginRcvrs = append(l.LoginRcvrs, rcvr)
 }
 
-func (l *LoginInterp) BeginInterpreting(fwdr Forwarder) {
+func (l *LoginInterp) BeginInterpreting(enlr Enroller) {
 	l.EventCh = make(chan struct{}, 1)
-	fwdr.EnrollForMsgs(l, "RPL_ENDOFMOTD")
+	enlr.EnrollForMsgs(l, "RPL_ENDOFMOTD")
 
 	go l.listenForLogin()
 }

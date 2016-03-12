@@ -2,12 +2,12 @@ package eventinterp
 
 import "github.com/crawsible/crawsibot/irc"
 
-type Forwarder interface {
+type Enroller interface {
 	EnrollForMsgs(mrc irc.MsgRcvr, cmd string)
 }
 
 type Interp interface {
-	BeginInterpreting(fwdr Forwarder)
+	BeginInterpreting(fwdr Enroller)
 }
 
 type EventInterp struct {
@@ -20,6 +20,6 @@ func New() *EventInterp {
 	}
 }
 
-func (e *EventInterp) BeginInterpreting(fwdr Forwarder) {
-	e.LoginInterp.BeginInterpreting(fwdr)
+func (e *EventInterp) BeginInterpreting(enlr Enroller) {
+	e.LoginInterp.BeginInterpreting(enlr)
 }
