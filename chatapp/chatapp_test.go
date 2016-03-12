@@ -19,7 +19,7 @@ var _ = Describe("ChatApp", func() {
 
 	Describe("#BeginChatting", func() {
 		var (
-			fakeController *mocks.FakeController
+			fakeController *mocks.FakeRegistrar
 			fakeSender     *mocks.FakeSender
 			fakeApp        *mocks.FakeApp
 			cfg            *config.Config
@@ -28,7 +28,7 @@ var _ = Describe("ChatApp", func() {
 		)
 
 		BeforeEach(func() {
-			fakeController = &mocks.FakeController{}
+			fakeController = &mocks.FakeRegistrar{}
 			fakeSender = &mocks.FakeSender{}
 			fakeApp = &mocks.FakeApp{}
 			cfg = &config.Config{Channel: "somechannel"}
