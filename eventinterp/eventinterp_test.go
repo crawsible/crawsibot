@@ -10,7 +10,7 @@ import (
 
 var _ = Describe("EventInterp", func() {
 	Describe(".New", func() {
-		It("returns an eventinterp with default dependencies injected", func() {
+		It("returns an EventInterp with default dependencies injected", func() {
 			c := eventinterp.New()
 			Expect(c.LoginInterp).To(Equal(&eventinterp.LoginInterp{}))
 		})
