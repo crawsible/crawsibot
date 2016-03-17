@@ -66,7 +66,7 @@ var _ = Describe("Integration", func() {
 		Eventually(reqCh).Should(Receive(Equal("JOIN #somechannel\r\n")))
 	})
 
-	It("Announces its arrival", func() {
+	XIt("Announces its arrival", func() {
 		Eventually(reqCh).Should(Receive(Equal("CAP REQ :twitch.tv/membership\r\n")))
 		resCh <- ":tmi.twitch.tv 376 crawsibot :>\r\n"
 		Eventually(reqCh).Should(Receive(Equal("JOIN #somechannel\r\n")))

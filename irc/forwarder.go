@@ -39,9 +39,11 @@ type MsgRcvr interface {
 	RcvMsg(nick, fprms, prms string)
 }
 
-func (f *MessageForwarder) EnrollForMsgs(mrc MsgRcvr, cmd string) {
-	f.MsgRcvrs[cmd] = appendIfNew(f.MsgRcvrs[cmd], mrc)
-}
+//func (f *MessageForwarder) EnrollForMsgs(mrc MsgRcvr, cmd string) {
+//f.MsgRcvrs[cmd] = appendIfNew(f.MsgRcvrs[cmd], mrc)
+//}
+
+func (f *MessageForwarder) EnrollForMsgs(rcvCh chan map[string]string, cmd string) {}
 
 func appendIfNew(mrcs []MsgRcvr, mrc MsgRcvr) []MsgRcvr {
 	for _, addedMrc := range mrcs {

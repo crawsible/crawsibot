@@ -20,15 +20,15 @@ var _ = Describe("Forwarder", func() {
 
 	Describe("#EnrollForMsgs", func() {
 		It("adds the receiver to its receiver list for the given command", func() {
-			forwarder.EnrollForMsgs(fakeReceiver, "SOMECMD")
+			//forwarder.EnrollForMsgs(fakeReceiver, "SOMECMD")
 			Expect(forwarder.MsgRcvrs["SOMECMD"]).To(ContainElement(fakeReceiver))
 		})
 
 		It("is idempotent", func() {
-			forwarder.EnrollForMsgs(fakeReceiver, "SOMECMD")
+			//forwarder.EnrollForMsgs(fakeReceiver, "SOMECMD")
 			receivers := forwarder.MsgRcvrs["SOMECMD"]
 
-			forwarder.EnrollForMsgs(fakeReceiver, "SOMECMD")
+			//forwarder.EnrollForMsgs(fakeReceiver, "SOMECMD")
 			Expect(forwarder.MsgRcvrs["SOMECMD"]).To(Equal(receivers))
 		})
 	})

@@ -1,19 +1,17 @@
 package mocks
 
-import "github.com/crawsible/crawsibot/irc"
-
 type FakeMessenger struct {
 	EnrollForMsgsCalls int
-	EnrollForMsgsRcvr  irc.MsgRcvr
+	EnrollForMsgsRcvr  chan map[string]string
 	EnrollForMsgsCmd   string
 
 	SendArgs  [][]string
 	sendCalls int
 }
 
-func (m *FakeMessenger) EnrollForMsgs(mrc irc.MsgRcvr, cmd string) {
+func (m *FakeMessenger) EnrollForMsgs(rcvCh chan map[string]string, cmd string) {
 	m.EnrollForMsgsCalls += 1
-	m.EnrollForMsgsRcvr = mrc
+	m.EnrollForMsgsRcvr = rcvCh
 	m.EnrollForMsgsCmd = cmd
 }
 
