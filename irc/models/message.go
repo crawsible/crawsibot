@@ -1,4 +1,4 @@
-package irc
+package models
 
 type Message struct {
 	NickOrSrvname string

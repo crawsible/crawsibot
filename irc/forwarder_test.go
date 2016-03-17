@@ -3,6 +3,7 @@ package irc_test
 import (
 	"github.com/crawsible/crawsibot/irc"
 	"github.com/crawsible/crawsibot/irc/mocks"
+	"github.com/crawsible/crawsibot/irc/models"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -67,14 +68,14 @@ var _ = Describe("Forwarder", func() {
 		})
 
 		Context("with recipients", func() {
-			var msg *irc.Message
+			var msg *models.Message
 			BeforeEach(func() {
 				forwarder.MsgRcvrs["SOMECMD"] = []irc.MsgRcvr{fakeReceiver}
-				msg = &irc.Message{
+				msg = &models.Message{
 					Command: "SOMECMD",
 					Params:  "some.server",
 				}
-				fakeCipher.DecodeMessages = []*irc.Message{msg, msg}
+				fakeCipher.DecodeMessages = []*models.Message{msg, msg}
 			})
 
 			It("calls RcvMsg with decoded message's field values on recipients", func() {

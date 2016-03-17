@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+
+	"github.com/crawsible/crawsibot/irc/models"
 )
 
 // see https://tools.ietf.org/html/rfc1459#section-2.3
@@ -23,19 +25,19 @@ var msgRE *regexp.Regexp = regexp.MustCompile(
 		`\r\n\z`,
 )
 
-func (c *MessageCipher) Decode(msgStr string) (*Message, error) {
+func (c *MessageCipher) Decode(msgStr string) (*models.Message, error) {
 	match := msgRE.FindStringSubmatch(msgStr)
 	if len(match) == 0 {
 		errMsg := fmt.Sprintf(
 			"The message received:\n%s\nis invalid.",
 			msgStr,
 		)
-		return &Message{}, errors.New(errMsg)
+		return &models.Message{}, errors.New(errMsg)
 	}
 
 	named := getNamedMatch(match)
 
-	return &Message{
+	return &models.Message{
 		NickOrSrvname: named["srvname"],
 		Command:       getStringFor(named["cmd"]),
 		FirstParams:   named["firstprms"],
@@ -43,7 +45,7 @@ func (c *MessageCipher) Decode(msgStr string) (*Message, error) {
 	}, nil
 }
 
-func (c *MessageCipher) Encode(msg *Message) string {
+func (c *MessageCipher) Encode(msg *models.Message) string {
 	buf := &bytes.Buffer{}
 	if msg.FirstParams != "" {
 		buf.WriteString(" ")

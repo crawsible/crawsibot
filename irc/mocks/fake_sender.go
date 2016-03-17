@@ -4,13 +4,14 @@ import (
 	"io"
 
 	"github.com/crawsible/crawsibot/irc"
+	"github.com/crawsible/crawsibot/irc/models"
 )
 
 type FakeSender struct {
 	StartSendingCalls  int
 	StartSendingWriter io.Writer
 	StartSendingEcdr   irc.Encoder
-	SendCh             chan *irc.Message
+	SendCh             chan *models.Message
 
 	SendCalls int
 	SendArgs  [][]string

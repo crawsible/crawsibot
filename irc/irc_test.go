@@ -111,7 +111,7 @@ var _ = Describe("IRC", func() {
 		})
 
 		Describe("#EnrollForMsgs", func() {
-			FIt("calls through to its Forwarder", func() {
+			It("calls through to its Forwarder", func() {
 				rcvCh := make(chan map[string]string)
 				client.EnrollForMsgs(rcvCh, "SOMECMD")
 
