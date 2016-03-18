@@ -4,33 +4,32 @@ import (
 	"github.com/crawsible/crawsibot/irc"
 	"github.com/crawsible/crawsibot/irc/mocks"
 	"github.com/crawsible/crawsibot/irc/models"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Forwarder", func() {
-	var (
-		fakeReceiver *mocks.FakeMsgRcvr
-		forwarder    *irc.MessageForwarder
-	)
+	var forwarder *irc.MessageForwarder
 
 	BeforeEach(func() {
-		fakeReceiver = &mocks.FakeMsgRcvr{}
-		forwarder = &irc.MessageForwarder{make(map[string][]irc.MsgRcvr)}
+		forwarder = &irc.MessageForwarder{make(map[string][]chan *models.Message)}
 	})
 
 	Describe("#EnrollForMsgs", func() {
-		It("adds the receiver to its receiver list for the given command", func() {
-			forwarder.EnrollForMsgs("SOMECMD")
-			Expect(forwarder.MsgRcvrs["SOMECMD"]).To(ContainElement(fakeReceiver))
+		It("returns a new one-buffer Message chan", func() {
+			newCh := forwarder.EnrollForMsgs("SOMECMD")
+
+			var msgCh chan *models.Message
+			Expect(newCh).To(BeAssignableToTypeOf(msgCh))
+			Expect(cap(newCh)).To(Equal(1))
 		})
 
-		It("is idempotent", func() {
-			forwarder.EnrollForMsgs("SOMECMD")
-			receivers := forwarder.MsgRcvrs["SOMECMD"]
+		It("adds the chan to its slice of Message chans for the given cmd", func() {
+			newCh := forwarder.EnrollForMsgs("SOMECMD")
 
-			forwarder.EnrollForMsgs("SOMECMD")
-			Expect(forwarder.MsgRcvrs["SOMECMD"]).To(Equal(receivers))
+			forwarder.MsgChs["SOMECMD"][0] <- &models.Message{}
+			Expect(newCh).To(Receive())
 		})
 	})
 
@@ -68,9 +67,13 @@ var _ = Describe("Forwarder", func() {
 		})
 
 		Context("with recipients", func() {
-			var msg *models.Message
+			var (
+				msg   *models.Message
+				msgCh chan *models.Message
+			)
 			BeforeEach(func() {
-				forwarder.MsgRcvrs["SOMECMD"] = []irc.MsgRcvr{fakeReceiver}
+				msgCh = make(chan *models.Message)
+				forwarder.MsgChs["SOMECMD"] = []chan *models.Message{msgCh}
 				msg = &models.Message{
 					Command: "SOMECMD",
 					Params:  "some.server",
@@ -78,39 +81,20 @@ var _ = Describe("Forwarder", func() {
 				fakeCipher.DecodeMessages = []*models.Message{msg, msg}
 			})
 
-			It("calls RcvMsg with decoded message's field values on recipients", func() {
+			It("sends the decoded message on each of the appropriate channels", func() {
 				rdStrCh <- ""
 				forwarder.StartForwarding(fakeReader, fakeCipher)
-
-				Eventually(fakeReceiver.RcvMsgCalls).Should(Equal(1))
-				Expect(fakeReceiver.RcvMsgNick).To(BeZero())
-				Expect(fakeReceiver.RcvMsgFprms).To(BeZero())
-				Expect(fakeReceiver.RcvMsgPrms).To(Equal("some.server"))
+				Eventually(msgCh).Should(Receive(Equal(msg)))
 			})
 
 			It("works with multiple recipients", func() {
-				secondRecipient := &mocks.FakeMsgRcvr{}
-				forwarder.MsgRcvrs["SOMECMD"] = append(forwarder.MsgRcvrs["SOMECMD"], secondRecipient)
+				secondCh := make(chan *models.Message)
+				forwarder.MsgChs["SOMECMD"] = append(forwarder.MsgChs["SOMECMD"], secondCh)
 				rdStrCh <- ""
 				forwarder.StartForwarding(fakeReader, fakeCipher)
 
-				Eventually(fakeReceiver.RcvMsgCalls).Should(Equal(1))
-				Expect(fakeReceiver.RcvMsgNick).To(BeZero())
-				Expect(fakeReceiver.RcvMsgFprms).To(BeZero())
-				Expect(fakeReceiver.RcvMsgPrms).To(Equal("some.server"))
-
-				Eventually(secondRecipient.RcvMsgCalls).Should(Equal(1))
-				Expect(secondRecipient.RcvMsgNick).To(BeZero())
-				Expect(secondRecipient.RcvMsgFprms).To(BeZero())
-				Expect(secondRecipient.RcvMsgPrms).To(Equal("some.server"))
-			})
-
-			It("handles multiple messages concurrently", func() {
-				forwarder.StartForwarding(fakeReader, fakeCipher)
-				rdStrCh <- ""
-				rdStrCh <- ""
-
-				Eventually(fakeReceiver.RcvMsgCalls).Should(Equal(2))
+				Eventually(msgCh).Should(Receive(Equal(msg)))
+				Eventually(secondCh).Should(Receive(Equal(msg)))
 			})
 		})
 	})

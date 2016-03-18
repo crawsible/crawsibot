@@ -3,7 +3,7 @@ package irc
 import "github.com/crawsible/crawsibot/irc/models"
 
 type MessageForwarder struct {
-	MsgRcvrs map[string][]MsgRcvr
+	MsgChs map[string][]chan *models.Message
 }
 
 type ReadStringer interface {
@@ -26,31 +26,14 @@ func (f *MessageForwarder) forward(rsr ReadStringer, dcdr Decoder) {
 		}
 
 		msg, _ := dcdr.Decode(msgStr)
-		rcvrs := f.MsgRcvrs[msg.Command]
-		for _, rcp := range rcvrs {
-			rcp.RcvMsg(
-				msg.NickOrSrvname,
-				msg.FirstParams,
-				msg.Params,
-			)
+		for _, msgCh := range f.MsgChs[msg.Command] {
+			msgCh <- msg
 		}
 	}
 }
 
-type MsgRcvr interface {
-	RcvMsg(nick, fprms, prms string)
-}
-
-func (f *MessageForwarder) EnrollForMsgs(cmd string) chan *models.Message {
-	return make(chan *models.Message)
-}
-
-func appendIfNew(mrcs []MsgRcvr, mrc MsgRcvr) []MsgRcvr {
-	for _, addedMrc := range mrcs {
-		if mrc == addedMrc {
-			return mrcs
-		}
-	}
-
-	return append(mrcs, mrc)
+func (f *MessageForwarder) EnrollForMsgs(cmd string) (ch chan *models.Message) {
+	ch = make(chan *models.Message, 1)
+	f.MsgChs[cmd] = append(f.MsgChs[cmd], ch)
+	return
 }

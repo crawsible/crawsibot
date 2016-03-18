@@ -3,6 +3,7 @@ package eventinterp_test
 import (
 	"github.com/crawsible/crawsibot/eventinterp"
 	"github.com/crawsible/crawsibot/eventinterp/mocks"
+	"github.com/crawsible/crawsibot/irc/models"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -33,10 +34,14 @@ var _ = Describe("LoginInterp", func() {
 	})
 
 	Describe("#BeginInterpreting", func() {
-		var fakeEnroller *mocks.FakeEnroller
+		var (
+			eventCh      chan *models.Message
+			fakeEnroller *mocks.FakeEnroller
+		)
 
 		BeforeEach(func() {
-			fakeEnroller = &mocks.FakeEnroller{}
+			eventCh = make(chan *models.Message, 1)
+			fakeEnroller = &mocks.FakeEnroller{EnrollForMsgsReturnChan: eventCh}
 			interp = &eventinterp.LoginInterp{}
 		})
 
@@ -44,15 +49,13 @@ var _ = Describe("LoginInterp", func() {
 			interp.BeginInterpreting(fakeEnroller)
 		})
 
-		It("instantiates its event channel with a buffer of 1", func() {
-			Expect(interp.EventCh).NotTo(BeNil())
-			Expect(cap(interp.EventCh)).To(Equal(1))
-		})
-
-		It("enrolls itself for RPL_ENDOFMOTD messages with the enroller", func() {
+		It("sets its EventCh with the chan provided by its enroller", func() {
 			Expect(fakeEnroller.EnrollForMsgsCalls).To(Equal(1))
-			Expect(fakeEnroller.EnrollForMsgsRcvr).To(Equal(interp))
 			Expect(fakeEnroller.EnrollForMsgsCmd).To(Equal("RPL_ENDOFMOTD"))
+
+			Expect(interp.EventCh).NotTo(Receive())
+			eventCh <- &models.Message{}
+			Expect(interp.EventCh).To(Receive())
 		})
 
 		Context("when receiving a message over the event channel", func() {
@@ -73,21 +76,10 @@ var _ = Describe("LoginInterp", func() {
 			It("invokes the 'LoggedIn' method of its registered InterpRcvrs", func() {
 				Eventually(fakeReceiver1.LoggedInCalls).ShouldNot(Equal(1))
 				Eventually(fakeReceiver2.LoggedInCalls).ShouldNot(Equal(1))
-				interp.EventCh <- struct{}{}
+				interp.EventCh <- &models.Message{}
 				Eventually(fakeReceiver1.LoggedInCalls).Should(Equal(1))
 				Eventually(fakeReceiver2.LoggedInCalls).Should(Equal(1))
 			})
-		})
-	})
-
-	Describe("#RcvMsg", func() {
-		BeforeEach(func() {
-			interp = &eventinterp.LoginInterp{EventCh: make(chan struct{}, 1)}
-		})
-
-		It("sends on the interp's EventCh", func() {
-			interp.RcvMsg("", "", "")
-			Eventually(interp.EventCh).Should(Receive())
 		})
 	})
 })

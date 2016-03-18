@@ -10,8 +10,6 @@ type FakePonger struct {
 	ForwarderHadStarted bool
 }
 
-func (f *FakePonger) RcvPING(nick, fprms, prms string) {}
-
 func (f *FakePonger) StartPonging(msgr irc.Messenger) {
 	f.StartPongingCalls += 1
 	f.StartPongingMsgr = msgr

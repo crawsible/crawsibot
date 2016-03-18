@@ -1,11 +1,13 @@
 package eventinterp
 
+import "github.com/crawsible/crawsibot/irc/models"
+
 type LoginRcvr interface {
 	LoggedIn()
 }
 
 type LoginInterp struct {
-	EventCh    chan struct{}
+	EventCh    chan *models.Message
 	LoginRcvrs []LoginRcvr
 }
 
@@ -14,9 +16,7 @@ func (l *LoginInterp) RegisterForInterp(rcvr LoginRcvr) {
 }
 
 func (l *LoginInterp) BeginInterpreting(enlr Enroller) {
-	l.EventCh = make(chan struct{}, 1)
-	enlr.EnrollForMsgs(l, "RPL_ENDOFMOTD")
-
+	l.EventCh = enlr.EnrollForMsgs("RPL_ENDOFMOTD")
 	go l.listenForLogin()
 }
 
@@ -25,8 +25,4 @@ func (l *LoginInterp) listenForLogin() {
 	for _, rcvr := range l.LoginRcvrs {
 		rcvr.LoggedIn()
 	}
-}
-
-func (l *LoginInterp) RcvMsg(n, f, p string) {
-	l.EventCh <- struct{}{}
 }

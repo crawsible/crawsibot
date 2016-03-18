@@ -1,20 +1,17 @@
 package irc
 
+import "github.com/crawsible/crawsibot/irc/models"
+
 type ServerPonger struct {
-	PingCh chan string
+	PingCh chan *models.Message
 }
 
 func (p *ServerPonger) StartPonging(msgr Messenger) {
-	p.PingCh = make(chan string)
-	msgr.EnrollForMsgs("PING")
+	p.PingCh = msgr.EnrollForMsgs("PING")
 
 	go func() {
-		for server := range p.PingCh {
-			msgr.Send("PONG", "", server)
+		for msg := range p.PingCh {
+			msgr.Send("PONG", "", msg.Params)
 		}
 	}()
-}
-
-func (p *ServerPonger) RcvMsg(nick, fprms, prms string) {
-	p.PingCh <- prms
 }

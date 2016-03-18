@@ -21,7 +21,9 @@ var _ = Describe("IRC", func() {
 			Expect(c.Dialer).To(Equal(&net.Dialer{}))
 			Expect(c.Cipher).To(Equal(&irc.MessageCipher{}))
 			Expect(c.Sender).To(Equal(&irc.MessageSender{}))
-			Expect(c.Forwarder).To(Equal(&irc.MessageForwarder{MsgRcvrs: make(map[string][]irc.MsgRcvr)}))
+			Expect(c.Forwarder).To(Equal(&irc.MessageForwarder{
+				MsgChs: make(map[string][]chan *models.Message),
+			}))
 			Expect(c.Ponger).To(Equal(&irc.ServerPonger{}))
 		})
 	})

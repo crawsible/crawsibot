@@ -50,7 +50,7 @@ func New() *IRC {
 		Dialer:    &net.Dialer{},
 		Cipher:    &MessageCipher{},
 		Sender:    &MessageSender{},
-		Forwarder: &MessageForwarder{make(map[string][]MsgRcvr)},
+		Forwarder: &MessageForwarder{make(map[string][]chan *models.Message)},
 		Ponger:    &ServerPonger{},
 	}
 }

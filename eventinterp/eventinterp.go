@@ -1,9 +1,9 @@
 package eventinterp
 
-import "github.com/crawsible/crawsibot/irc"
+import "github.com/crawsible/crawsibot/irc/models"
 
 type Enroller interface {
-	EnrollForMsgs(mrc irc.MsgRcvr, cmd string)
+	EnrollForMsgs(cmd string) chan *models.Message
 }
 
 type Interp interface {
