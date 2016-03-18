@@ -1,15 +1,18 @@
 package mocks
 
-import "github.com/crawsible/crawsibot/irc"
+import (
+	"github.com/crawsible/crawsibot/irc"
+	"github.com/crawsible/crawsibot/irc/models"
+)
 
 type FakeForwarder struct {
 	StartForwardingCalls  int
 	StartForwardingReader irc.ReadStringer
 	StartForwardingDcdr   irc.Decoder
 
-	EnrollForMsgCalls int
-	EnrollForMsgChan  chan map[string]string
-	EnrollForMsgCmd   string
+	EnrollForMsgCalls      int
+	EnrollForMsgReturnChan chan *models.Message
+	EnrollForMsgCmd        string
 }
 
 func (f *FakeForwarder) StartForwarding(rsr irc.ReadStringer, dcdr irc.Decoder) {
@@ -18,8 +21,8 @@ func (f *FakeForwarder) StartForwarding(rsr irc.ReadStringer, dcdr irc.Decoder) 
 	f.StartForwardingDcdr = dcdr
 }
 
-func (f *FakeForwarder) EnrollForMsgs(rcvCh chan map[string]string, cmd string) {
+func (f *FakeForwarder) EnrollForMsgs(cmd string) chan *models.Message {
 	f.EnrollForMsgCalls += 1
-	f.EnrollForMsgChan = rcvCh
 	f.EnrollForMsgCmd = cmd
+	return f.EnrollForMsgReturnChan
 }
