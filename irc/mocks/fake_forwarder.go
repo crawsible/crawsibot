@@ -2,7 +2,7 @@ package mocks
 
 import (
 	"github.com/crawsible/crawsibot/irc"
-	"github.com/crawsible/crawsibot/irc/models"
+	"github.com/crawsible/crawsibot/irc/message"
 )
 
 type FakeForwarder struct {
@@ -11,7 +11,7 @@ type FakeForwarder struct {
 	StartForwardingDcdr   irc.Decoder
 
 	EnrollForMsgCalls      int
-	EnrollForMsgReturnChan chan *models.Message
+	EnrollForMsgReturnChan chan *message.Message
 	EnrollForMsgCmd        string
 }
 
@@ -21,7 +21,7 @@ func (f *FakeForwarder) StartForwarding(rsr irc.ReadStringer, dcdr irc.Decoder) 
 	f.StartForwardingDcdr = dcdr
 }
 
-func (f *FakeForwarder) EnrollForMsgs(cmd string) chan *models.Message {
+func (f *FakeForwarder) EnrollForMsgs(cmd string) chan *message.Message {
 	f.EnrollForMsgCalls += 1
 	f.EnrollForMsgCmd = cmd
 	return f.EnrollForMsgReturnChan

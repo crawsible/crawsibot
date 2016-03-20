@@ -3,7 +3,7 @@ package irc_test
 import (
 	"github.com/crawsible/crawsibot/irc"
 	"github.com/crawsible/crawsibot/irc/mocks"
-	"github.com/crawsible/crawsibot/irc/models"
+	"github.com/crawsible/crawsibot/irc/message"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -13,14 +13,14 @@ var _ = Describe("Forwarder", func() {
 	var forwarder *irc.MessageForwarder
 
 	BeforeEach(func() {
-		forwarder = &irc.MessageForwarder{make(map[string][]chan *models.Message)}
+		forwarder = &irc.MessageForwarder{make(map[string][]chan *message.Message)}
 	})
 
 	Describe("#EnrollForMsgs", func() {
 		It("returns a new one-buffer Message chan", func() {
 			newCh := forwarder.EnrollForMsgs("SOMECMD")
 
-			var msgCh chan *models.Message
+			var msgCh chan *message.Message
 			Expect(newCh).To(BeAssignableToTypeOf(msgCh))
 			Expect(cap(newCh)).To(Equal(1))
 		})
@@ -28,7 +28,7 @@ var _ = Describe("Forwarder", func() {
 		It("adds the chan to its slice of Message chans for the given cmd", func() {
 			newCh := forwarder.EnrollForMsgs("SOMECMD")
 
-			forwarder.MsgChs["SOMECMD"][0] <- &models.Message{}
+			forwarder.MsgChs["SOMECMD"][0] <- &message.Message{}
 			Expect(newCh).To(Receive())
 		})
 	})
@@ -68,17 +68,17 @@ var _ = Describe("Forwarder", func() {
 
 		Context("with recipients", func() {
 			var (
-				msg   *models.Message
-				msgCh chan *models.Message
+				msg   *message.Message
+				msgCh chan *message.Message
 			)
 			BeforeEach(func() {
-				msgCh = make(chan *models.Message)
-				forwarder.MsgChs["SOMECMD"] = []chan *models.Message{msgCh}
-				msg = &models.Message{
+				msgCh = make(chan *message.Message)
+				forwarder.MsgChs["SOMECMD"] = []chan *message.Message{msgCh}
+				msg = &message.Message{
 					Command: "SOMECMD",
 					Params:  "some.server",
 				}
-				fakeCipher.DecodeMessages = []*models.Message{msg, msg}
+				fakeCipher.DecodeMessages = []*message.Message{msg, msg}
 			})
 
 			It("sends the decoded message on each of the appropriate channels", func() {
@@ -88,7 +88,7 @@ var _ = Describe("Forwarder", func() {
 			})
 
 			It("works with multiple recipients", func() {
-				secondCh := make(chan *models.Message)
+				secondCh := make(chan *message.Message)
 				forwarder.MsgChs["SOMECMD"] = append(forwarder.MsgChs["SOMECMD"], secondCh)
 				rdStrCh <- ""
 				forwarder.StartForwarding(fakeReader, fakeCipher)

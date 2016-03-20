@@ -7,7 +7,7 @@ import (
 	"github.com/crawsible/crawsibot/config"
 	"github.com/crawsible/crawsibot/irc"
 	"github.com/crawsible/crawsibot/irc/mocks"
-	"github.com/crawsible/crawsibot/irc/models"
+	"github.com/crawsible/crawsibot/irc/message"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -22,7 +22,7 @@ var _ = Describe("IRC", func() {
 			Expect(c.Cipher).To(Equal(&irc.MessageCipher{}))
 			Expect(c.Sender).To(Equal(&irc.MessageSender{}))
 			Expect(c.Forwarder).To(Equal(&irc.MessageForwarder{
-				MsgChs: make(map[string][]chan *models.Message),
+				MsgChs: make(map[string][]chan *message.Message),
 			}))
 			Expect(c.Ponger).To(Equal(&irc.ServerPonger{}))
 		})
@@ -115,7 +115,7 @@ var _ = Describe("IRC", func() {
 
 		Describe("#EnrollForMsgs", func() {
 			It("calls through to its Forwarder", func() {
-				returnCh := make(chan *models.Message)
+				returnCh := make(chan *message.Message)
 				fakeForwarder.EnrollForMsgReturnChan = returnCh
 				msgCh := client.EnrollForMsgs("SOMECMD")
 

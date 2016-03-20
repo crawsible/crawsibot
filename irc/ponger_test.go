@@ -3,7 +3,7 @@ package irc_test
 import (
 	"github.com/crawsible/crawsibot/irc"
 	"github.com/crawsible/crawsibot/irc/mocks"
-	"github.com/crawsible/crawsibot/irc/models"
+	"github.com/crawsible/crawsibot/irc/message"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -14,12 +14,12 @@ var _ = Describe("Ponger", func() {
 
 	Describe("#StartPonging", func() {
 		var (
-			pingCh   chan *models.Message
+			pingCh   chan *message.Message
 			fakeMsgr *mocks.FakeMessenger
 		)
 
 		BeforeEach(func() {
-			pingCh = make(chan *models.Message, 1)
+			pingCh = make(chan *message.Message, 1)
 			fakeMsgr = &mocks.FakeMessenger{EnrollForMsgsReturnChan: pingCh}
 			ponger = &irc.ServerPonger{}
 
@@ -31,13 +31,13 @@ var _ = Describe("Ponger", func() {
 			Expect(fakeMsgr.EnrollForMsgsCmd).To(Equal("PING"))
 
 			Expect(ponger.PingCh).NotTo(Receive())
-			pingCh <- &models.Message{}
+			pingCh <- &message.Message{}
 			Expect(ponger.PingCh).To(Receive())
 		})
 
 		Context("once ponging has started", func() {
 			It("PONGs the received server with the messenger", func() {
-				ponger.PingCh <- &models.Message{Params: "some.server"}
+				ponger.PingCh <- &message.Message{Params: "some.server"}
 
 				Eventually(fakeMsgr.SendCalls).Should(Equal(1))
 				expectedArgs := []string{"PONG", "", "some.server"}
@@ -45,8 +45,8 @@ var _ = Describe("Ponger", func() {
 			})
 
 			It("handles multiple messages", func() {
-				ponger.PingCh <- &models.Message{Params: "some.server"}
-				ponger.PingCh <- &models.Message{Params: "some.other.server"}
+				ponger.PingCh <- &message.Message{Params: "some.server"}
+				ponger.PingCh <- &message.Message{Params: "some.other.server"}
 
 				Eventually(fakeMsgr.SendCalls).Should(Equal(2))
 				expectedArgs0 := []string{"PONG", "", "some.server"}

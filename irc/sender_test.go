@@ -3,7 +3,7 @@ package irc_test
 import (
 	"github.com/crawsible/crawsibot/irc"
 	"github.com/crawsible/crawsibot/irc/mocks"
-	"github.com/crawsible/crawsibot/irc/models"
+	"github.com/crawsible/crawsibot/irc/message"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -35,12 +35,12 @@ var _ = Describe("Sender", func() {
 		})
 
 		It("sets a channel with a buffer capacity of 90 as a field", func() {
-			Expect(sender.SendCh).To(BeAssignableToTypeOf(make(chan *models.Message)))
+			Expect(sender.SendCh).To(BeAssignableToTypeOf(make(chan *message.Message)))
 			Expect(cap(sender.SendCh)).To(Equal(90))
 		})
 
 		It("uses its cipher to encode messages received on its chan", func() {
-			sentMsg := &models.Message{
+			sentMsg := &message.Message{
 				Command:     "SOMECMD",
 				FirstParams: "someparam",
 			}
@@ -53,17 +53,17 @@ var _ = Describe("Sender", func() {
 		It("writes to the provided conn with the encoded message", func() {
 			fakeCipher.EncodeStrings = []string{"SOME encodedstring\r\n"}
 
-			sender.SendCh <- &models.Message{}
+			sender.SendCh <- &message.Message{}
 			Eventually(fakeWriter.WriteCalls).Should(Equal(1))
 			Expect(fakeWriter.WriteMessage).To(Equal([]byte("SOME encodedstring\r\n")))
 		})
 	})
 
 	Describe("#Send", func() {
-		var fakeCh chan *models.Message
+		var fakeCh chan *message.Message
 
 		BeforeEach(func() {
-			fakeCh = make(chan *models.Message, 1)
+			fakeCh = make(chan *message.Message, 1)
 			sender.SendCh = fakeCh
 		})
 
@@ -74,7 +74,7 @@ var _ = Describe("Sender", func() {
 		It("converts args to messages and sends them through its chan", func() {
 			sender.Send("SOMECMD", "some-fprms", "some-prms")
 			Eventually(fakeCh).Should(HaveLen(1))
-			expectedMsg := &models.Message{"", "SOMECMD", "some-fprms", "some-prms"}
+			expectedMsg := &message.Message{"", "SOMECMD", "some-fprms", "some-prms"}
 			Expect(<-fakeCh).To(Equal(expectedMsg))
 		})
 	})

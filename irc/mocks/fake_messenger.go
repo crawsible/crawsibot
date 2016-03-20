@@ -1,17 +1,17 @@
 package mocks
 
-import "github.com/crawsible/crawsibot/irc/models"
+import "github.com/crawsible/crawsibot/irc/message"
 
 type FakeMessenger struct {
 	EnrollForMsgsCalls      int
-	EnrollForMsgsReturnChan chan *models.Message
+	EnrollForMsgsReturnChan chan *message.Message
 	EnrollForMsgsCmd        string
 
 	SendArgs  [][]string
 	sendCalls int
 }
 
-func (m *FakeMessenger) EnrollForMsgs(cmd string) chan *models.Message {
+func (m *FakeMessenger) EnrollForMsgs(cmd string) chan *message.Message {
 	m.EnrollForMsgsCalls += 1
 	m.EnrollForMsgsCmd = cmd
 	return m.EnrollForMsgsReturnChan

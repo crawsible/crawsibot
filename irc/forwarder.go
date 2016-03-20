@@ -1,9 +1,9 @@
 package irc
 
-import "github.com/crawsible/crawsibot/irc/models"
+import "github.com/crawsible/crawsibot/irc/message"
 
 type MessageForwarder struct {
-	MsgChs map[string][]chan *models.Message
+	MsgChs map[string][]chan *message.Message
 }
 
 type ReadStringer interface {
@@ -11,7 +11,7 @@ type ReadStringer interface {
 }
 
 type Decoder interface {
-	Decode(msgStr string) (*models.Message, error)
+	Decode(msgStr string) (*message.Message, error)
 }
 
 func (f *MessageForwarder) StartForwarding(rsr ReadStringer, dcdr Decoder) {
@@ -32,8 +32,8 @@ func (f *MessageForwarder) forward(rsr ReadStringer, dcdr Decoder) {
 	}
 }
 
-func (f *MessageForwarder) EnrollForMsgs(cmd string) (ch chan *models.Message) {
-	ch = make(chan *models.Message, 1)
+func (f *MessageForwarder) EnrollForMsgs(cmd string) (ch chan *message.Message) {
+	ch = make(chan *message.Message, 1)
 	f.MsgChs[cmd] = append(f.MsgChs[cmd], ch)
 	return
 }

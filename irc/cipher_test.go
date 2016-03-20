@@ -2,7 +2,7 @@ package irc_test
 
 import (
 	"github.com/crawsible/crawsibot/irc"
-	"github.com/crawsible/crawsibot/irc/models"
+	"github.com/crawsible/crawsibot/irc/message"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -57,7 +57,7 @@ var _ = Describe("MessageCipher", func() {
 
 	Describe("#Encode", func() {
 		It("converts a Message into a properly formatted string", func() {
-			msg := &models.Message{
+			msg := &message.Message{
 				Command:     "SOMECMD",
 				FirstParams: "#somechannel",
 				Params:      "some message or another",
@@ -68,7 +68,7 @@ var _ = Describe("MessageCipher", func() {
 		})
 
 		It("does not include whitespace or colon if Params is not set", func() {
-			msg := &models.Message{
+			msg := &message.Message{
 				Command:     "SOMESMALLCMD",
 				FirstParams: "#somechannel",
 			}
@@ -78,7 +78,7 @@ var _ = Describe("MessageCipher", func() {
 		})
 
 		It("does not add extra whitespace if FirstParams is not set", func() {
-			msg := &models.Message{
+			msg := &message.Message{
 				Command: "SOMESMALLCMD",
 				Params:  "some-server",
 			}

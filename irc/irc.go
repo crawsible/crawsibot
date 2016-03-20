@@ -6,7 +6,7 @@ import (
 	"net"
 
 	"github.com/crawsible/crawsibot/config"
-	"github.com/crawsible/crawsibot/irc/models"
+	"github.com/crawsible/crawsibot/irc/message"
 )
 
 type Dialer interface {
@@ -25,7 +25,7 @@ type Sender interface {
 
 type Forwarder interface {
 	StartForwarding(rsr ReadStringer, dcdr Decoder)
-	EnrollForMsgs(cmd string) chan *models.Message
+	EnrollForMsgs(cmd string) chan *message.Message
 }
 
 type Ponger interface {
@@ -33,7 +33,7 @@ type Ponger interface {
 }
 
 type Messenger interface {
-	EnrollForMsgs(cmd string) chan *models.Message
+	EnrollForMsgs(cmd string) chan *message.Message
 	Send(cmd, fprms, prms string)
 }
 
@@ -50,7 +50,7 @@ func New() *IRC {
 		Dialer:    &net.Dialer{},
 		Cipher:    &MessageCipher{},
 		Sender:    &MessageSender{},
-		Forwarder: &MessageForwarder{make(map[string][]chan *models.Message)},
+		Forwarder: &MessageForwarder{make(map[string][]chan *message.Message)},
 		Ponger:    &ServerPonger{},
 	}
 }
@@ -74,6 +74,6 @@ func (i *IRC) Send(cmd, fprms, prms string) {
 	i.Sender.Send(cmd, fprms, prms)
 }
 
-func (i *IRC) EnrollForMsgs(cmd string) chan *models.Message {
+func (i *IRC) EnrollForMsgs(cmd string) chan *message.Message {
 	return i.Forwarder.EnrollForMsgs(cmd)
 }

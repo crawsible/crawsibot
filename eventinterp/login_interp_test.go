@@ -4,7 +4,7 @@ import (
 	"github.com/crawsible/crawsibot/eventinterp"
 	"github.com/crawsible/crawsibot/eventinterp/event"
 	"github.com/crawsible/crawsibot/eventinterp/mocks"
-	"github.com/crawsible/crawsibot/irc/models"
+	"github.com/crawsible/crawsibot/irc/message"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -42,12 +42,12 @@ var _ = Describe("LoginInterp", func() {
 
 	Describe("#BeginInterpreting", func() {
 		var (
-			msgCh        chan *models.Message
+			msgCh        chan *message.Message
 			fakeEnroller *mocks.FakeEnroller
 		)
 
 		BeforeEach(func() {
-			msgCh = make(chan *models.Message, 1)
+			msgCh = make(chan *message.Message, 1)
 			fakeEnroller = &mocks.FakeEnroller{EnrollForMsgsReturnChan: msgCh}
 			interp = &eventinterp.LoginInterp{}
 		})
@@ -61,7 +61,7 @@ var _ = Describe("LoginInterp", func() {
 			Expect(fakeEnroller.EnrollForMsgsCmd).To(Equal("RPL_ENDOFMOTD"))
 
 			Expect(interp.MsgCh).NotTo(Receive())
-			msgCh <- &models.Message{}
+			msgCh <- &message.Message{}
 			Expect(interp.MsgCh).To(Receive())
 		})
 
@@ -82,7 +82,7 @@ var _ = Describe("LoginInterp", func() {
 				Expect(eventCh1).NotTo(Receive())
 				Expect(eventCh2).NotTo(Receive())
 
-				msgCh <- &models.Message{}
+				msgCh <- &message.Message{}
 				Eventually(eventCh1).Should(Receive(Equal(&event.Event{Type: event.Login})))
 				Eventually(eventCh2).Should(Receive(Equal(&event.Event{Type: event.Login})))
 			})

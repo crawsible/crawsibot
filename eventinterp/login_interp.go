@@ -2,11 +2,11 @@ package eventinterp
 
 import (
 	"github.com/crawsible/crawsibot/eventinterp/event"
-	"github.com/crawsible/crawsibot/irc/models"
+	"github.com/crawsible/crawsibot/irc/message"
 )
 
 type LoginInterp struct {
-	MsgCh    chan *models.Message
+	MsgCh    chan *message.Message
 	EventChs []chan *event.Event
 }
 

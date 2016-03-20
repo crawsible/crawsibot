@@ -1,18 +1,18 @@
 package mocks
 
-import "github.com/crawsible/crawsibot/irc/models"
+import "github.com/crawsible/crawsibot/irc/message"
 
 type FakeCipher struct {
-	EncodeMessages []*models.Message
+	EncodeMessages []*message.Message
 	EncodeStrings  []string
 	encodeCalls    int
 
 	DecodeStrings  []string
-	DecodeMessages []*models.Message
+	DecodeMessages []*message.Message
 	decodeCalls    int
 }
 
-func (c *FakeCipher) Encode(msg *models.Message) (str string) {
+func (c *FakeCipher) Encode(msg *message.Message) (str string) {
 	c.encodeCalls += 1
 	c.EncodeMessages = append(c.EncodeMessages, msg)
 
@@ -29,11 +29,11 @@ func (c *FakeCipher) EncodeCalls() int {
 	return c.encodeCalls
 }
 
-func (c *FakeCipher) Decode(str string) (msg *models.Message, err error) {
+func (c *FakeCipher) Decode(str string) (msg *message.Message, err error) {
 	c.decodeCalls += 1
 	c.DecodeStrings = append(c.DecodeStrings, str)
 
-	msg = &models.Message{}
+	msg = &message.Message{}
 	if len(c.DecodeMessages) == 0 {
 		return
 	}

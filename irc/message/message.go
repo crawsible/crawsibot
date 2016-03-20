@@ -1,4 +1,4 @@
-package models
+package message
 
 type Message struct {
 	NickOrSrvname string

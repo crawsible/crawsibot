@@ -1,9 +1,9 @@
 package irc
 
-import "github.com/crawsible/crawsibot/irc/models"
+import "github.com/crawsible/crawsibot/irc/message"
 
 type ServerPonger struct {
-	PingCh chan *models.Message
+	PingCh chan *message.Message
 }
 
 func (p *ServerPonger) StartPonging(msgr Messenger) {
