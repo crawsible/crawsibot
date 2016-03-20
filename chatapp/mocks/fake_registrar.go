@@ -1,13 +1,16 @@
 package mocks
 
-import "github.com/crawsible/crawsibot/eventinterp"
+import "github.com/crawsible/crawsibot/eventinterp/event"
 
 type FakeRegistrar struct {
-	RegisterForLoginCalls int
-	RegisterForLoginRcvr  eventinterp.LoginRcvr
+	EnrollForEventsCalls      int
+	EnrollForEventsTypes      []event.Type
+	EnrollForEventsReturnChan chan *event.Event
 }
 
-func (r *FakeRegistrar) RegisterForLogin(rcvr eventinterp.LoginRcvr) {
-	r.RegisterForLoginCalls += 1
-	r.RegisterForLoginRcvr = rcvr
+func (r *FakeRegistrar) EnrollForEvents(eventTypes ...event.Type) chan *event.Event {
+	r.EnrollForEventsCalls += 1
+	r.EnrollForEventsTypes = eventTypes
+
+	return r.EnrollForEventsReturnChan
 }

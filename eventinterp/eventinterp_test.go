@@ -2,6 +2,7 @@ package eventinterp_test
 
 import (
 	"github.com/crawsible/crawsibot/eventinterp"
+	"github.com/crawsible/crawsibot/eventinterp/event"
 	"github.com/crawsible/crawsibot/eventinterp/mocks"
 
 	. "github.com/onsi/ginkgo"
@@ -12,20 +13,29 @@ var _ = Describe("EventInterp", func() {
 	Describe(".New", func() {
 		It("returns an EventInterp with default dependencies injected", func() {
 			c := eventinterp.New()
-			Expect(c.LoginInterp).To(Equal(&eventinterp.LoginInterp{}))
+			Expect(c.Interps).To(Equal(
+				map[event.Type]eventinterp.Interp{
+					event.Login: &eventinterp.LoginInterp{},
+				},
+			))
 		})
 	})
 
 	Context("with EventInterp instances", func() {
 		var (
-			fakeInterp *mocks.FakeInterp
-			controller *eventinterp.EventInterp
+			fakeInterp    *mocks.FakeInterp
+			anotherInterp *mocks.FakeInterp
+			controller    *eventinterp.EventInterp
 		)
 
 		BeforeEach(func() {
 			fakeInterp = &mocks.FakeInterp{}
+			anotherInterp = &mocks.FakeInterp{}
 			controller = &eventinterp.EventInterp{
-				LoginInterp: fakeInterp,
+				Interps: map[event.Type]eventinterp.Interp{
+					event.Login:   fakeInterp,
+					event.Unknown: anotherInterp,
+				},
 			}
 		})
 
@@ -37,23 +47,44 @@ var _ = Describe("EventInterp", func() {
 				controller.BeginInterpreting(fakeEnroller)
 			})
 
-			It("tells its LoginInterp to begin interpreting", func() {
+			It("tells each of its Interps to begin interpreting", func() {
 				Expect(fakeInterp.BeginInterpretingCalls).To(Equal(1))
 				Expect(fakeInterp.BeginInterpretingEnroller).To(Equal(fakeEnroller))
+				Expect(anotherInterp.BeginInterpretingCalls).To(Equal(1))
+				Expect(anotherInterp.BeginInterpretingEnroller).To(Equal(fakeEnroller))
 			})
 		})
 
-		Describe("#RegisterForLogin", func() {
-			var fakeRcvr *mocks.FakeInterpRcvr
+		Describe("#EnrollForEvents", func() {
+			It("generates and returns a single-buffered event chan", func() {
+				ch := controller.EnrollForEvents(event.Login)
 
-			BeforeEach(func() {
-				fakeRcvr = &mocks.FakeInterpRcvr{}
-				controller.RegisterForLogin(fakeRcvr)
+				var eventCh chan *event.Event
+				Expect(ch).To(BeAssignableToTypeOf(eventCh))
+				Expect(cap(ch)).To(Equal(1))
 			})
 
-			It("registers the provided LoginRcvr with its LoginInterp", func() {
+			It("enrolls the channel with the interps for the provided event Types", func() {
+				ch := controller.EnrollForEvents(event.Login)
+
 				Expect(fakeInterp.RegisterForInterpCalls).To(Equal(1))
-				Expect(fakeInterp.RegisterForInterpRcvr).To(Equal(fakeRcvr))
+
+				Expect(ch).NotTo(Receive())
+				fakeInterp.RegisterForInterpChan <- &event.Event{}
+				Expect(ch).To(Receive())
+			})
+
+			It("will enroll a single channel for multiple Types", func() {
+				ch := controller.EnrollForEvents(event.Login, event.Unknown)
+
+				Expect(fakeInterp.RegisterForInterpCalls).To(Equal(1))
+				Expect(anotherInterp.RegisterForInterpCalls).To(Equal(1))
+
+				Expect(ch).NotTo(Receive())
+				fakeInterp.RegisterForInterpChan <- &event.Event{}
+				Expect(ch).To(Receive())
+				anotherInterp.RegisterForInterpChan <- &event.Event{}
+				Expect(ch).To(Receive())
 			})
 		})
 	})

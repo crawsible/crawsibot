@@ -2,6 +2,7 @@ package eventinterp_test
 
 import (
 	"github.com/crawsible/crawsibot/eventinterp"
+	"github.com/crawsible/crawsibot/eventinterp/event"
 	"github.com/crawsible/crawsibot/eventinterp/mocks"
 	"github.com/crawsible/crawsibot/irc/models"
 
@@ -13,35 +14,41 @@ var _ = Describe("LoginInterp", func() {
 	var interp *eventinterp.LoginInterp
 
 	Describe("#RegisterForInterp", func() {
-		var fakeReceiver1 *mocks.FakeInterpRcvr
-		var fakeReceiver2 *mocks.FakeInterpRcvr
+		var eventCh1 chan *event.Event
+		var eventCh2 chan *event.Event
 
 		BeforeEach(func() {
-			fakeReceiver1 = &mocks.FakeInterpRcvr{}
-			fakeReceiver2 = &mocks.FakeInterpRcvr{}
+			eventCh1 = make(chan *event.Event, 1)
+			eventCh2 = make(chan *event.Event, 1)
 			interp = &eventinterp.LoginInterp{}
 		})
 
-		It("adds the provided receiver to its list of LoginRcvrs", func() {
-			interp.RegisterForInterp(fakeReceiver1)
-			Expect(interp.LoginRcvrs).To(Equal([]eventinterp.LoginRcvr{fakeReceiver1}))
-			interp.RegisterForInterp(fakeReceiver2)
-			Expect(interp.LoginRcvrs).To(Equal([]eventinterp.LoginRcvr{
-				fakeReceiver1,
-				fakeReceiver2,
-			}))
+		It("adds the provided receiver to its list of EventChs", func() {
+			interp.RegisterForInterp(eventCh1)
+			interp.RegisterForInterp(eventCh2)
+
+			Expect(eventCh1).NotTo(Receive())
+			Expect(eventCh2).NotTo(Receive())
+
+			interp.EventChs[0] <- &event.Event{}
+			Expect(eventCh1).To(Receive())
+			Expect(eventCh2).NotTo(Receive())
+
+			interp.EventChs[1] <- &event.Event{}
+			Expect(eventCh1).NotTo(Receive())
+			Expect(eventCh2).To(Receive())
 		})
 	})
 
 	Describe("#BeginInterpreting", func() {
 		var (
-			eventCh      chan *models.Message
+			msgCh        chan *models.Message
 			fakeEnroller *mocks.FakeEnroller
 		)
 
 		BeforeEach(func() {
-			eventCh = make(chan *models.Message, 1)
-			fakeEnroller = &mocks.FakeEnroller{EnrollForMsgsReturnChan: eventCh}
+			msgCh = make(chan *models.Message, 1)
+			fakeEnroller = &mocks.FakeEnroller{EnrollForMsgsReturnChan: msgCh}
 			interp = &eventinterp.LoginInterp{}
 		})
 
@@ -49,36 +56,35 @@ var _ = Describe("LoginInterp", func() {
 			interp.BeginInterpreting(fakeEnroller)
 		})
 
-		It("sets its EventCh with the chan provided by its enroller", func() {
+		It("sets its MsgCh with the chan provided by its enroller", func() {
 			Expect(fakeEnroller.EnrollForMsgsCalls).To(Equal(1))
 			Expect(fakeEnroller.EnrollForMsgsCmd).To(Equal("RPL_ENDOFMOTD"))
 
-			Expect(interp.EventCh).NotTo(Receive())
-			eventCh <- &models.Message{}
-			Expect(interp.EventCh).To(Receive())
+			Expect(interp.MsgCh).NotTo(Receive())
+			msgCh <- &models.Message{}
+			Expect(interp.MsgCh).To(Receive())
 		})
 
 		Context("when receiving a message over the event channel", func() {
-			var (
-				fakeReceiver1 *mocks.FakeInterpRcvr
-				fakeReceiver2 *mocks.FakeInterpRcvr
-			)
+			var eventCh1 chan *event.Event
+			var eventCh2 chan *event.Event
 
 			BeforeEach(func() {
-				fakeReceiver1 = &mocks.FakeInterpRcvr{}
-				fakeReceiver2 = &mocks.FakeInterpRcvr{}
+				eventCh1 = make(chan *event.Event, 1)
+				eventCh2 = make(chan *event.Event, 1)
 
 				interp = &eventinterp.LoginInterp{
-					LoginRcvrs: []eventinterp.LoginRcvr{fakeReceiver1, fakeReceiver2},
+					EventChs: []chan *event.Event{eventCh1, eventCh2},
 				}
 			})
 
-			It("invokes the 'LoggedIn' method of its registered InterpRcvrs", func() {
-				Eventually(fakeReceiver1.LoggedInCalls).ShouldNot(Equal(1))
-				Eventually(fakeReceiver2.LoggedInCalls).ShouldNot(Equal(1))
-				interp.EventCh <- &models.Message{}
-				Eventually(fakeReceiver1.LoggedInCalls).Should(Equal(1))
-				Eventually(fakeReceiver2.LoggedInCalls).Should(Equal(1))
+			It("sends a login Event to its eventChs", func() {
+				Expect(eventCh1).NotTo(Receive())
+				Expect(eventCh2).NotTo(Receive())
+
+				msgCh <- &models.Message{}
+				Eventually(eventCh1).Should(Receive(Equal(&event.Event{Type: event.Login})))
+				Eventually(eventCh2).Should(Receive(Equal(&event.Event{Type: event.Login})))
 			})
 		})
 	})

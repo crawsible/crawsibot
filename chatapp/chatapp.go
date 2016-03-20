@@ -2,11 +2,11 @@ package chatapp
 
 import (
 	"github.com/crawsible/crawsibot/config"
-	"github.com/crawsible/crawsibot/eventinterp"
+	"github.com/crawsible/crawsibot/eventinterp/event"
 )
 
 type Registrar interface {
-	RegisterForLogin(rcvr eventinterp.LoginRcvr)
+	EnrollForEvents(eventTypes ...event.Type) chan *event.Event
 }
 
 type Sender interface {

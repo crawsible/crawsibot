@@ -4,6 +4,7 @@ import (
 	"github.com/crawsible/crawsibot/chatapp"
 	"github.com/crawsible/crawsibot/chatapp/mocks"
 	"github.com/crawsible/crawsibot/config"
+	"github.com/crawsible/crawsibot/eventinterp/event"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -15,12 +16,14 @@ var _ = Describe("JoinChannelApp", func() {
 	Describe("#BeginChatting", func() {
 		var (
 			fakeRegistrar *mocks.FakeRegistrar
+			eventCh       chan *event.Event
 			fakeSender    *mocks.FakeSender
 			cfg           *config.Config
 		)
 
 		BeforeEach(func() {
-			fakeRegistrar = &mocks.FakeRegistrar{}
+			eventCh = make(chan *event.Event, 1)
+			fakeRegistrar = &mocks.FakeRegistrar{EnrollForEventsReturnChan: eventCh}
 			fakeSender = &mocks.FakeSender{}
 			cfg = &config.Config{Channel: "somechannel"}
 
@@ -31,36 +34,26 @@ var _ = Describe("JoinChannelApp", func() {
 			app.BeginChatting(fakeRegistrar, fakeSender, cfg)
 		})
 
-		It("instantiates its event channel with a buffer of 1", func() {
-			Expect(app.EventCh).NotTo(BeNil())
-			Expect(cap(app.EventCh)).To(Equal(1))
+		It("enrolls with its registrar for login messages", func() {
+			Expect(fakeRegistrar.EnrollForEventsCalls).To(Equal(1))
+			Expect(fakeRegistrar.EnrollForEventsTypes).To(Equal([]event.Type{event.Login}))
 		})
 
-		It("registers itself for Login messages with the provided registrar", func() {
-			Expect(fakeRegistrar.RegisterForLoginCalls).To(Equal(1))
-			Expect(fakeRegistrar.RegisterForLoginRcvr).To(Equal(app))
+		It("sets its EventCh with the chan provided by its registrar", func() {
+			Expect(app.EventCh).NotTo(Receive())
+			eventCh <- &event.Event{}
+			Expect(app.EventCh).To(Receive())
 		})
 
 		Context("when receiving a message over the event channel", func() {
 			It("sends the appropriate channel-joining params to the provided sender", func() {
 				Eventually(fakeSender.SendCalls).ShouldNot(Equal(1))
-				app.EventCh <- struct{}{}
+				app.EventCh <- &event.Event{}
 				Eventually(fakeSender.SendCalls).Should(Equal(1))
 				Expect(fakeSender.SendCmd).To(Equal("JOIN"))
 				Expect(fakeSender.SendFprms).To(Equal("#somechannel"))
 				Expect(fakeSender.SendPrms).To(Equal(""))
 			})
-		})
-	})
-
-	Describe("#LoggedIn", func() {
-		BeforeEach(func() {
-			app = &chatapp.JoinChannelApp{EventCh: make(chan struct{}, 1)}
-		})
-
-		It("sends on the app's EventCh", func() {
-			app.LoggedIn()
-			Eventually(app.EventCh).Should(Receive())
 		})
 	})
 })
