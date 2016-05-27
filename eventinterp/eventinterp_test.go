@@ -15,7 +15,8 @@ var _ = Describe("EventInterp", func() {
 			c := eventinterp.New()
 			Expect(c.Interps).To(Equal(
 				map[event.Type]eventinterp.Interp{
-					event.Login: &eventinterp.LoginInterp{},
+					event.Login:       &eventinterp.LoginInterp{},
+					event.ChannelJoin: &eventinterp.ChannelJoinInterp{},
 				},
 			))
 		})

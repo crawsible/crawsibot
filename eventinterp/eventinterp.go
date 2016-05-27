@@ -22,7 +22,8 @@ type EventInterp struct {
 func New() *EventInterp {
 	return &EventInterp{
 		Interps: map[event.Type]Interp{
-			event.Login: &LoginInterp{},
+			event.Login:       &LoginInterp{},
+			event.ChannelJoin: &ChannelJoinInterp{},
 		},
 	}
 }
