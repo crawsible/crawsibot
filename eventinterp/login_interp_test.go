@@ -72,15 +72,14 @@ var _ = Describe("LoginInterp", func() {
 			BeforeEach(func() {
 				eventCh1 = make(chan *event.Event, 1)
 				eventCh2 = make(chan *event.Event, 1)
+				eventChs := []chan *event.Event{eventCh1, eventCh2}
 
-				interp = &eventinterp.LoginInterp{
-					EventChs: []chan *event.Event{eventCh1, eventCh2},
-				}
+				interp.EventChs = eventChs
 			})
 
 			It("sends a login Event to its eventChs", func() {
-				Expect(eventCh1).NotTo(Receive())
-				Expect(eventCh2).NotTo(Receive())
+				Consistently(eventCh1).ShouldNot(Receive())
+				Consistently(eventCh2).ShouldNot(Receive())
 
 				msgCh <- &message.Message{}
 				Eventually(eventCh1).Should(Receive(Equal(&event.Event{Type: event.Login})))

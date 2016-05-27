@@ -17,8 +17,11 @@ func (l *LoginInterp) BeginInterpreting(enlr Enroller) {
 }
 
 func (l *LoginInterp) listenForLogin() {
+	loginEvt := &event.Event{Type: event.Login}
+
 	<-l.MsgCh
+
 	for _, eventCh := range l.EventChs {
-		eventCh <- &event.Event{Type: event.Login}
+		eventCh <- loginEvt
 	}
 }
