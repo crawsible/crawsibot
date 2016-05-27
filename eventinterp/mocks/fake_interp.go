@@ -11,6 +11,9 @@ type FakeInterp struct {
 
 	RegisterForInterpCalls int
 	RegisterForInterpChan  chan *event.Event
+
+	UnsubscribeCalls int
+	UnsubscribeChan  chan *event.Event
 }
 
 func (a *FakeInterp) BeginInterpreting(enlr eventinterp.Enroller) {
@@ -18,7 +21,12 @@ func (a *FakeInterp) BeginInterpreting(enlr eventinterp.Enroller) {
 	a.BeginInterpretingEnroller = enlr
 }
 
-func (a *FakeInterp) RegisterForInterp(eventCh chan *event.Event) {
+func (a *FakeInterp) RegisterForInterp(ch chan *event.Event) {
 	a.RegisterForInterpCalls += 1
-	a.RegisterForInterpChan = eventCh
+	a.RegisterForInterpChan = ch
+}
+
+func (a *FakeInterp) Unsubscribe(ch chan *event.Event) {
+	a.UnsubscribeCalls += 1
+	a.UnsubscribeChan = ch
 }

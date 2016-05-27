@@ -87,5 +87,17 @@ var _ = Describe("EventInterp", func() {
 				Expect(ch).To(Receive())
 			})
 		})
+
+		Describe("#Unsubscribe", func() {
+			It("asks its interps to excise the provided channel", func() {
+				unsubCh := make(chan *event.Event)
+				controller.Unsubscribe(unsubCh)
+
+				Expect(fakeInterp.UnsubscribeCalls).To(Equal(1))
+				Expect(fakeInterp.UnsubscribeChan).To(Equal(unsubCh))
+				Expect(anotherInterp.UnsubscribeCalls).To(Equal(1))
+				Expect(anotherInterp.UnsubscribeChan).To(Equal(unsubCh))
+			})
+		})
 	})
 })

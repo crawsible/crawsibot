@@ -12,6 +12,7 @@ type Enroller interface {
 type Interp interface {
 	BeginInterpreting(enrl Enroller)
 	RegisterForInterp(eventCh chan *event.Event)
+	Unsubscribe(eventCh chan *event.Event)
 }
 
 type EventInterp struct {
@@ -39,4 +40,10 @@ func (e *EventInterp) EnrollForEvents(eventTypes ...event.Type) chan *event.Even
 	}
 
 	return eventCh
+}
+
+func (e *EventInterp) Unsubscribe(eventCh chan *event.Event) {
+	for _, interp := range e.Interps {
+		interp.Unsubscribe(eventCh)
+	}
 }
