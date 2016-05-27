@@ -6,12 +6,9 @@ import (
 )
 
 type LoginInterp struct {
-	MsgCh    chan *message.Message
-	EventChs []chan *event.Event
-}
+	BaseInterp
 
-func (l *LoginInterp) RegisterForInterp(eventCh chan *event.Event) {
-	l.EventChs = append(l.EventChs, eventCh)
+	MsgCh chan *message.Message
 }
 
 func (l *LoginInterp) BeginInterpreting(enlr Enroller) {
