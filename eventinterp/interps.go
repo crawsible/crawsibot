@@ -7,6 +7,44 @@ import (
 	"github.com/crawsible/crawsibot/irc/message"
 )
 
+type BaseInterp struct {
+	EventChs []chan *event.Event
+}
+
+func (in *BaseInterp) RegisterForInterp(eventCh chan *event.Event) {
+	in.EventChs = append(in.EventChs, eventCh)
+}
+
+func (in *BaseInterp) Unsubscribe(eventCh chan *event.Event) {
+	for i, ch := range in.EventChs {
+		if ch == eventCh {
+			in.EventChs = append(in.EventChs[:i], in.EventChs[i+1:]...)
+			close(eventCh)
+		}
+	}
+}
+
+type LoginInterp struct {
+	BaseInterp
+
+	MsgCh chan *message.Message
+}
+
+func (l *LoginInterp) BeginInterpreting(enlr Enroller) {
+	l.MsgCh = enlr.EnrollForMsgs("RPL_ENDOFMOTD")
+	go l.listenForLogin()
+}
+
+func (l *LoginInterp) listenForLogin() {
+	loginEvt := &event.Event{Type: event.Login}
+
+	<-l.MsgCh
+
+	for _, eventCh := range l.EventChs {
+		eventCh <- loginEvt
+	}
+}
+
 type ChannelJoinInterp struct {
 	BaseInterp
 
@@ -29,7 +67,6 @@ func (c *ChannelJoinInterp) listenForChannelJoin() {
 	for _, ch := range c.EventChs {
 		ch <- joinEvt
 	}
-
 }
 
 var channelJoinFprmsRE *regexp.Regexp = regexp.MustCompile(
