@@ -28,15 +28,12 @@ var _ = Describe("JoinChannelApp", func() {
 			cfg = &config.Config{Channel: "somechannel"}
 
 			app = &chatapp.JoinChannelApp{}
-		})
-
-		JustBeforeEach(func() {
 			app.BeginChatting(fakeRegistrar, fakeSender, cfg)
 		})
 
-		It("enrolls with its registrar for login messages", func() {
+		It("enrolls with its registrar for login and channeljoin messages", func() {
 			Expect(fakeRegistrar.EnrollForEventsCalls).To(Equal(1))
-			Expect(fakeRegistrar.EnrollForEventsTypes).To(Equal([]event.Type{event.Login}))
+			Expect(fakeRegistrar.EnrollForEventsTypes).To(Equal([]event.Type{event.Login, event.ChannelJoin}))
 		})
 
 		It("sets its EventCh with the chan provided by its registrar", func() {
@@ -45,14 +42,55 @@ var _ = Describe("JoinChannelApp", func() {
 			Expect(app.EventCh).To(Receive())
 		})
 
-		Context("when receiving a message over the event channel", func() {
+		Context("when receiving a login message over the event channel", func() {
 			It("sends the appropriate channel-joining params to the provided sender", func() {
-				Eventually(fakeSender.SendCalls).ShouldNot(Equal(1))
-				app.EventCh <- &event.Event{}
+				Consistently(fakeSender.SendCalls).Should(Equal(0))
+				app.EventCh <- &event.Event{Type: event.Login}
+
 				Eventually(fakeSender.SendCalls).Should(Equal(1))
 				Expect(fakeSender.SendCmd).To(Equal("JOIN"))
 				Expect(fakeSender.SendFprms).To(Equal("#somechannel"))
 				Expect(fakeSender.SendPrms).To(Equal(""))
+			})
+		})
+
+		Context("before sending its join command", func() {
+			It("doesn't respond to channeljoin messages", func() {
+				app.EventCh <- &event.Event{Type: event.ChannelJoin}
+				Consistently(fakeSender.SendCalls).Should(Equal(0))
+			})
+		})
+
+		Context("after sending its join command", func() {
+
+			BeforeEach(func() {
+				Consistently(fakeSender.SendCalls).Should(Equal(0))
+				app.EventCh <- &event.Event{Type: event.Login}
+				Eventually(fakeSender.SendCalls).Should(Equal(1))
+			})
+
+			Context("when receiving a channeljoin for the correct channel", func() {
+				var channeljoinData map[string]string
+
+				BeforeEach(func() {
+					channeljoinData = map[string]string{
+						"joinedChannel": "somechannel",
+					}
+					app.EventCh <- &event.Event{event.ChannelJoin, channeljoinData}
+				})
+
+				It("announces its arrival", func() {
+					Eventually(fakeSender.SendCalls).Should(Equal(2))
+					Expect(fakeSender.SendCmd).To(Equal("PRIVMSG"))
+					Expect(fakeSender.SendFprms).To(Equal("#somechannel"))
+					Expect(fakeSender.SendPrms).To(Equal("COME WITH ME IF YOU WANT TO LIVE."))
+				})
+
+				It("stops listening on the channel", func() {
+					Eventually(fakeSender.SendCalls).Should(Equal(2))
+					Expect(fakeRegistrar.UnsubscribeCalls).To(Equal(1))
+					Expect(fakeRegistrar.UnsubscribeChan).To(Equal(app.EventCh))
+				})
 			})
 		})
 	})

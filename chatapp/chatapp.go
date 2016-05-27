@@ -7,6 +7,7 @@ import (
 
 type Registrar interface {
 	EnrollForEvents(eventTypes ...event.Type) chan *event.Event
+	Unsubscribe(chan *event.Event)
 }
 
 type Sender interface {
