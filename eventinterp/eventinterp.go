@@ -24,6 +24,7 @@ func New() *EventInterp {
 		Interps: map[event.Type]Interp{
 			event.Login:       &LoginInterp{},
 			event.ChannelJoin: &ChannelJoinInterp{},
+			event.Command:     &CommandInterp{},
 		},
 	}
 }

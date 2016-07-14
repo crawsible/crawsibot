@@ -80,3 +80,10 @@ func channelFromFprms(fprms string) string {
 
 	return match[1]
 }
+
+type CommandInterp struct {
+	BaseInterp
+}
+
+func (in CommandInterp) BeginInterpreting(enlr Enroller) {
+}

@@ -5,6 +5,7 @@ type Type int
 const (
 	Login = iota
 	ChannelJoin
+	Command
 	Unknown
 )
 

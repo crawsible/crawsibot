@@ -17,6 +17,7 @@ var _ = Describe("EventInterp", func() {
 				map[event.Type]eventinterp.Interp{
 					event.Login:       &eventinterp.LoginInterp{},
 					event.ChannelJoin: &eventinterp.ChannelJoinInterp{},
+					event.Command:     &eventinterp.CommandInterp{},
 				},
 			))
 		})
